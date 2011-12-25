@@ -1,5 +1,8 @@
+import numpy as np
+import psr_utils
+
 class TimeVsPhase(object):
-    def __init__(data, p, pd, pdd, dm, starttimes):
+    def __init__(self, data, p, pd, pdd, dm, starttimes):
         self.data = data
         self.curr_p = p
         self.curr_pd = pd
@@ -16,11 +19,11 @@ class TimeVsPhase(object):
                 the given period and period derivatives
         """
         if p is None:
-            p = self.curr_p1
+            p = self.curr_p
         if pd is None:
-            pd = self.curr_p2
+            pd = self.curr_pd
         if pdd is None:
-            pdd = self.curr_p3
+            pdd = self.curr_pdd
         
         # Cast to single precision and back to double precision to
         # emulate prepfold_plot.c, where parttimes is of type "float"
@@ -29,23 +32,30 @@ class TimeVsPhase(object):
         parttimes = self.start_secs.astype('float32').astype('float64')
 
         # Get delays
-        f, fd, fdd = psr_utils.p_to_f(p, pd, pdd)
-        fcurr, fdcurr, fddcurr = psr_utils.p_to_f(self.curr_p1, \
-                                                  self.curr_p2, \
-                                                  self.curr_p3)
+        fcurr, fdcurr, fddcurr = psr_utils.p_to_f(self.curr_p, \
+                                                  self.curr_pd, \
+                                                  self.curr_pdd)
+        
+        fdd = psr_utils.p_to_f(self.curr_p, self.curr_pd, pdd)[2]
+        fd = psr_utils.p_to_f(self.curr_p, pd)[1]
+        f = 1.0/p
+        
         f_diff = f - fcurr
         fd_diff = fd - fdcurr
-        fdd_diff = fdd - fddcurr
+        if pdd != 0.0:
+            fdd_diff = fdd - fddcurr
+        else:
+            fdd_diff = 0.0
         delays = psr_utils.delay_from_foffsets(f_diff, fd_diff, fdd_diff, \
                                                 parttimes)
 
         # Convert from delays in phase to delays in bins
-        bin_delays = Num.fmod(delays * self.nbin, self.nbin)
-        new_pdelays_bins = Num.floor(bin_delays+0.5)
+        bin_delays = np.fmod(delays * self.nbin, self.nbin)
+        new_pdelays_bins = np.floor(bin_delays+0.5)
 
         # Rotate subintegrations
         for ii in range(self.nsubint):
-            tmp_prof = self.profs[ii,:]
+            tmp_prof = self.data[ii,:]
             # Negative sign in num bins to shift because we calculated delays
             # Assuming +ve is shift-to-right, psr_utils.rotate assumes +ve
             # is shift-to-left
@@ -53,11 +63,11 @@ class TimeVsPhase(object):
                                             -new_pdelays_bins[ii])
         
         # Save new p, pd, pdd
-        self.curr_p1, self.curr_p2, self.curr_p3 = p, pd, pdd
+        self.curr_p, self.curr_pd, self.curr_pdd = p, pd, pdd
     
 
 class FreqVsPhase(object):
-    def __init__(data, p, pd, pdd, dm, subfreqs):
+    def __init__(self, data, p, pd, pdd, dm, subfreqs):
         self.data = data
         self.p = p
         self.pd = pd
@@ -65,7 +75,7 @@ class FreqVsPhase(object):
         self.curr_dm = dm
         self.subfreqs = subfreqs
 
-        self.nchan = self.nbin = self.data.shape
+        self.nchan, self.nbin = self.data.shape
 
     def dedisperse(self, DM):
         """
@@ -81,7 +91,7 @@ class FreqVsPhase(object):
         hifreqdelay = subdelays[-1]
         subdelays = subdelays-hifreqdelay
         delaybins = subdelays*binspersec
-        new_subdelays_bins = Num.floor(delaybins+0.5)
+        new_subdelays_bins = np.floor(delaybins+0.5)
 
         for ii in range(self.nchan):
             tmp_prof = self.data[ii,:]

@@ -1,7 +1,7 @@
-import base
+import cand_info
 import myprepfold as prepfold
 
-class PfdRatingClass(base.BaseRatingClass):
+class PfdRatingClass(cand_info.CandInfoRatingClass):
     data_key = "pfd"
 
     def _compute_data(self, cand):

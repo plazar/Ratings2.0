@@ -14,10 +14,6 @@ class Candidate(object):
     adding extra information and methods useful for automatic
     candidate rating as used in surveys.
     """
-    add_to_cache = setattr
-    get_from_cache = getattr
-    is_in_cache = hasattr
-
     def __init__(self, topo_period, bary_period, dm, raj_deg, decj_deg, pfdfn):
         """Constructor for Candidate objects
             
@@ -36,7 +32,7 @@ class Candidate(object):
         self.bary_period = bary_period
         self.dm = dm
         self.raj_deg = raj_deg
-        self.decj_deg
+        self.decj_deg = decj_deg
         self.pfdfn = pfdfn
         self.rating_values = []
 
@@ -44,4 +40,14 @@ class Candidate(object):
         self.rating_values.append(ratval)
 
     def get_ratings_string(self):
-        return = "-----\n".join([str(rv) for rv in self.rating_values])
+        return "-----\n".join([str(rv) for rv in self.rating_values])
+    
+    def add_to_cache(self, key, val):
+        setattr(self, key, val)
+        
+    def get_from_cache(self, key):
+        return getattr(self, key)
+        
+    def is_in_cache(self, key):
+        return hasattr(self, key)
+

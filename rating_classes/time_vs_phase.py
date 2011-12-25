@@ -17,6 +17,6 @@ class TimeVsPhaseClass(pfd.PfdRatingClass):
         pfd.dedisperse(pfd.bestdm, doppler=1)
         data = pfd.profs.sum(axis=1).squeeze()
         tvph = dataproducts.TimeVsPhase(data, pfd.curr_p1, pfd.curr_p2, \
-                                        pfd.curr_p3, self.bestdm, \
-                                        self.start_secs)
+                                        pfd.curr_p3, pfd.bestdm, \
+                                        pfd.start_secs)
         return tvph
