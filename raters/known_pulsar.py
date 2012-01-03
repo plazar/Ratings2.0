@@ -1,4 +1,5 @@
 import base
+from rating_classes import cand_info
 
 # Initialise constants
 M = 99
