@@ -1,6 +1,8 @@
 import numpy as np
 import psr_utils
 
+import utils
+
 class TimeVsPhase(object):
     def __init__(self, data, p, pd, pdd, dm, starttimes):
         self.data = data
@@ -98,3 +100,54 @@ class FreqVsPhase(object):
             self.data[ii,:] = psr_utils.rotate(tmp_prof, \
                                             -new_subdelays_bins[ii])
         self.curr_dm = DM
+
+
+class GaussianFit(object):
+    def __init__(self, k, mu=0.0, a=1.0, b=0.0):
+        if k < 0:
+            raise ValueError("Negative values of k simply shift the phase " \
+                                "by 0.5; please do not supply them")
+        self.k = float(k)
+        self.mu = float(mu)
+        self.a = float(a)
+        self.b = float(b)
+
+    def __repr__(self):
+        return "<%s k=%g mu=%g a=%g b=%g>" % \
+                    (type(self), self.k, self.mu, self.a, self.b)
+
+    def max(self):
+        return self(self.mu)
+
+    def min(self):
+        return self(self.mu + 0.5)
+
+    def amplitude(self, n=None, peak_to_peak=True):
+        if n is None:
+            if peak_to_peak:
+                return self.max() - self.min()
+            else:
+                return self.max() - self.b
+        else:
+            h = self.histogram(n)
+            if peak_to_peak:
+                return np.amax(h) - np.amin(h)
+            else:
+                return np.amax(h) - self.b
+
+    def area(self, peak_to_peak=True):
+        if peak_to_peak:
+            return self.a - self.min()
+        else:
+            return self.a
+
+    def histogram(self, n):
+        return self.a*utils.vonmises_histogram(self.k, self.mu, n) + self.b
+
+    def __call__(self, x):
+        return self.a*utils.vonmises_values(self.k, self.mu, x) + self.b
+
+    def fwhm(self):
+        s_height = (np.exp(-2*self.k) + 1)/2.
+        return 2*np.arccos(1 + np.log(s_height)/self.k)/(2*np.pi)
+        
