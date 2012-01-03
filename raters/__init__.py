@@ -10,5 +10,5 @@ __all__ = registered_raters
 auto_import_registered = True
 
 if auto_import_registered:
-    for classname in registered_toa_classes:
+    for classname in registered_raters:
         __import__(classname, globals())

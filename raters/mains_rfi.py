@@ -1,4 +1,5 @@
 import base
+from rating_classes import cand_info
 
 N = 10
 MAINS_FREQ = 60.0

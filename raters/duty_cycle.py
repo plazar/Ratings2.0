@@ -22,6 +22,6 @@ class DutyCycleRater(base.BaseRater):
                 value: The rating value.
         """
         nbin = float(len(cand.profile))
-        thresh = np.amax(cand.profile)+np.median(cand.profile))/2.0
+        thresh = (np.amax(cand.profile)+np.median(cand.profile))/2.0
         dutycycle = np.sum(cand.profile>thresh)/nbin
         return dutycycle
