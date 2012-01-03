@@ -2,7 +2,8 @@ import base
 from rating_classes import gaussian
 
 class GaussianWidthRater(base.BaseRater):
-    name = "Gaussian Width"
+    short_name = "gausswidth"
+    long_name = "Gaussian Width Rating"
     description = "Compute the full width at half maxiumum of the best-fit " \
                   "Gaussian. The function being fit is not actually a " \
                   "Gaussian, it's a von Mises distribution " \

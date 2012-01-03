@@ -2,7 +2,8 @@ import base
 from rating_classes import profile
 
 class DutyCycleRater(base.BaseRater):
-    name = "Duty Cycle Rating"
+    short_name = "dutycycle"
+    long_name = "Duty Cycle Rating"
     description = "Compute the duty cycle, that is, the fraction of " \
                   "profile bins in which the value is more than " \
                   "(max+median)/2."

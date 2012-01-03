@@ -4,7 +4,8 @@ N = 10
 MAINS_FREQ = 60.0
 
 class MainsRFIRater(base.BaseRater):
-    name = "Mains RFI Rating"
+    short_name = "mainsrfi"
+    long_name = "Mains RFI Rating"
     description = "Evaluate how close the topocentric frequency is to a " \
                   "harmonic or subharmonic of 60 Hz. Considers all " \
                   "frequencies 60 Hz * a/b where a and b are integers " \

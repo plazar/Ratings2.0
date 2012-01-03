@@ -1,7 +1,8 @@
 import rating_classes
 
 class BaseRater(object):
-    name = NotImplemented
+    short_name = NotImplemented
+    long_name = NotImplemented
     description = NotImplemented
     version = NotImplemented
     

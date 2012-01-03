@@ -9,7 +9,8 @@ KNOWNPSR_FILENM = "knownpulsars.txt"
 
 
 class KnownPulsarRater(base.BaseRater):
-    name = "Known Pulsar Rating"
+    short_name = "knownpsr"
+    long_name = "Known Pulsar Rating"
     description = "Evaluate how close the barycentric period is to a known " \
                   "pulsar, its harmonics (up to 99th), or an integer-ratio-" \
                   "multiple of a known pulsar period.\n" \
