@@ -4,6 +4,23 @@ class BaseRater(object):
     name = NotImplemented
     description = NotImplemented
     version = NotImplemented
+    
+    rat_cls = NotImplemented
+
+    def __init__(self):
+        super(self, BaseRater).__init__()
+        self._setup()
+
+    def _setup(self):
+        """A setup method to be called when the Rater is initialised
+        
+            Inputs:
+                None
+
+            Outputs:
+                None
+        """
+        pass
 
     def rate(self, cand):
         """Give a candidate rate it and return the rating value.
@@ -14,6 +31,7 @@ class BaseRater(object):
             Output:
                 ratval: A RatingValue object.
         """
+        self.rat_cls.add_data(cand)
         value = self._compute_rating(cand)
         ratval = rating_value.RatingValue(self.name, self.version, \
                                             self.description, value)
