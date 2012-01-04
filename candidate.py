@@ -6,6 +6,8 @@ modules of this package.
 
 Patrick Lazarus, Dec 15. 2011 - mid-flight
 """
+import prepfold
+import psr_utils
 
 
 class Candidate(object):
@@ -39,9 +41,28 @@ class Candidate(object):
     def add_rating(self, ratval):
         self.rating_values.append(ratval)
 
-    def get_ratings_string(self):
-        return "-----\n".join([str(rv) for rv in self.rating_values])
-    
+    def get_ratings_string(self, sep=('-'*45+'\n')):
+        return sep.join([str(rv)+'\n'for rv in self.rating_values])
+
+    def write_ratings_to_file(self, fn=None, *args, **kwargs):
+        """Write candidate's ratings to file.
+            
+            Inputs:
+                fn: File name to write ratings to.
+                    (Default: generate the file name based on
+                            the candidate's PFD file's name.)
+                **Additional arguments are passed to 'get_ratings_string(...)'
+
+            Outputs:
+                fn: The output file name.
+        """
+        if fn is None:
+            fn = self.pfdfn[:-4]+".rat"
+        f = open(fn, 'w')
+        f.write(self.get_ratings_string(*args, **kwargs))
+        f.close()
+        return fn
+
     def add_to_cache(self, key, val):
         setattr(self, key, val)
         
@@ -51,3 +72,20 @@ class Candidate(object):
     def is_in_cache(self, key):
         return hasattr(self, key)
 
+
+def read_pfd_file(pfdfn):
+    """Return a Candidate object for the pfd given.
+
+        Input:
+            pfdfn: PRESTO *.pfd file name.
+
+        Output:
+            cand: Candidate object constructed from the given pfd
+                file name.
+    """
+    pfd = prepfold.pfd(pfdfn)
+    cand = Candidate(pfd.topo_p1, pfd.bary_p1, pfd.bestdm, \
+                    psr_utils.ra_to_rad(pfd.rastr)*psr_utils.RADTODEG, \
+                    psr_utils.dec_to_rad(pfd.decstr)*psr_utils.RADTODEG, \
+                    pfdfn)
+    return cand
