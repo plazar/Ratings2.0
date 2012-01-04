@@ -1,3 +1,5 @@
+import numpy as np
+
 import base
 from rating_classes import cand_info
 
@@ -96,3 +98,5 @@ class KnownPulsarRater(base.BaseRater):
                         pdiff_dm=1.0/(2.0*np.abs(((dispm)-dm)/((dispm)+dm)))
                         pdiff_min=np.min(pdiff_dm,pdiff_min)
         return pdiff_min
+
+Rater = KnownPulsarRater

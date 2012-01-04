@@ -1,3 +1,5 @@
+import numpy as np
+
 import base
 from rating_classes import profile
 
@@ -25,3 +27,5 @@ class DutyCycleRater(base.BaseRater):
         thresh = (np.amax(cand.profile)+np.median(cand.profile))/2.0
         dutycycle = np.sum(cand.profile>thresh)/nbin
         return dutycycle
+
+Rater = DutyCycleRater

@@ -1,3 +1,4 @@
+import rating_value
 import rating_classes
 
 class BaseRater(object):
@@ -9,7 +10,7 @@ class BaseRater(object):
     rat_cls = NotImplemented
 
     def __init__(self):
-        super(self, BaseRater).__init__()
+        super(BaseRater, self).__init__()
         self._setup()
 
     def _setup(self):
@@ -34,8 +35,8 @@ class BaseRater(object):
         """
         self.rat_cls.add_data(cand)
         value = self._compute_rating(cand)
-        ratval = rating_value.RatingValue(self.name, self.version, \
-                                            self.description, value)
+        ratval = rating_value.RatingValue(self.long_name, self.version, \
+                                    self.description, value)
         return ratval
 
     def _compute_rating(self, cand):

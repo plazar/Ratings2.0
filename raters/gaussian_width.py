@@ -23,3 +23,5 @@ class GaussianWidthRater(base.BaseRater):
                 value: The rating value.
         """
         return cand.gaussfit.fwhm()
+
+Rater = GaussianWidthRater

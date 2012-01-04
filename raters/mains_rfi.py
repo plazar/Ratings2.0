@@ -35,6 +35,8 @@ class MainsRFIRater(base.BaseRater):
         for aa in range(1, 9):
             for bb in range(1, 10-aa):
                 rf = (MAINS_FREQ * aa)/bb
-                fdiff = 2*abs(f-rf)/(f+rf)
+                fdiff = 2*abs(topo_freq-rf)/(topo_freq+rf)
                 fdiff_min = min(fdiff, fdiff_min)
         return 2.0**(-fdiff_min/1e-3)
+
+Rater = MainsRFIRater
