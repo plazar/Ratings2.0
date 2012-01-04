@@ -5,10 +5,5 @@ registered_raters = ["duty_cycle", \
 
 __all__ = registered_raters
 
-# If True, automatically import all registered rater classes
-# when 'raters' is imported.
-auto_import_registered = True
-
-if auto_import_registered:
-    for classname in registered_raters:
-        __import__(classname, globals())
+for rater_name in registered_raters:
+    __import__(rater_name, globals())
