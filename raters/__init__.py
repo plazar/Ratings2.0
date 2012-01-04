@@ -1,6 +1,7 @@
 registered_raters = ["duty_cycle", \
                      "gaussian_width", \
                      "gaussian_height", \
+                     "gaussian_phase", \
                      "known_pulsar", \
                      "mains_rfi"]
 
