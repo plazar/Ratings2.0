@@ -2,12 +2,22 @@ import sys
 import argparse
 import copy
 
+import candidate
 import raters
 
 
 def main():
-    print raters.base.BaseRater.__subclasses__()
-    
+    rater_instances = []
+    for rater_name in args.raters:
+        rater_module = getattr(raters, rater_name)
+        rater_instances.append(rater_module.Rater())
+    for pfdfn in args.infiles:
+        cand = candidate.read_pfd_file(pfdfn)
+        for rater in rater_instances:
+            ratval = rater.rate(cand)
+            cand.add_rating(ratval)
+        cand.write_ratings_to_file()
+
 
 class RemoveAllRatersAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
