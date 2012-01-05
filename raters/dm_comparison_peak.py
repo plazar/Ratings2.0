@@ -26,17 +26,8 @@ class DMComparisonPeakRater(base.BaseRater):
         """
         fvph = cand.freq_vs_phase
         
-        print "DEBUG: dedispersing freq vs phase"
-        #fvph.dedisperse(DM=0)
-        print "DEBUG: dedispersing pfd"
-        cand.pfd.dedisperse(0, doppler=1)
-        print "DEBUG: inside dm_comparison_peak.py -- cand.pfd.subdelays_bins", cand.pfd.subdelays_bins
-        print "DEBUG: Running time vs phase method of pfd"
-        prof_dm0_pfd = cand.pfd.time_vs_phase().sum(axis=0)
-        prof_dm0 = fvph.get_profile(remove_offset=False)
-        plt.plot(prof_dm0_pfd)
-        plt.plot(prof_dm0)
-        plt.show()
+        fvph.dedisperse(DM=0)
+        prof_dm0 = fvph.get_profile()
         peak_dm0 = np.amax(prof_dm0) - np.median(prof_dm0)
 
         fvph.dedisperse(DM=cand.pfd.bestdm)

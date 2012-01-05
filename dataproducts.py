@@ -66,19 +66,34 @@ class TimeVsPhase(object):
         
         # Save new p, pd, pdd
         self.curr_p, self.curr_pd, self.curr_pdd = p, pd, pdd
-    
+
+    def get_profile(self, remove_offset=True):
+        prof = self.data.sum(axis=0).squeeze()
+        if remove_offset:
+            # Remove the mean of the profile
+            prof -= prof.mean()
+        return prof
+
 
 class FreqVsPhase(object):
-    def __init__(self, data, p, pd, pdd, dm, subfreqs):
+    def __init__(self, data, p, pd, pdd, dm, subfreqs, binspersec):
         self.data = data
         self.p = p
         self.pd = pd
         self.pdd = pdd
         self.curr_dm = dm
         self.subfreqs = subfreqs
+        self.binspersec = binspersec
 
         self.nchan, self.nbin = self.data.shape
 
+    def get_delaybins(self, dm):
+        subdelays = psr_utils.delay_from_DM(dm, self.subfreqs)
+        hifreqdelay = subdelays[-1]
+        subdelays = subdelays-hifreqdelay
+        delaybins = subdelays*self.binspersec
+        return np.floor(delaybins+0.5)
+        
     def dedisperse(self, DM):
         """
         dedisperse(DM=self.bestdm, interp=0, doppler=0):
@@ -86,20 +101,20 @@ class FreqVsPhase(object):
                 at a dispersion measure of DM.
         """
         dDM = DM - self.curr_dm
-        freqs = self.subfreqs
-        binspersec = self.nbin/self.p
-        
-        subdelays = psr_utils.delay_from_DM(dDM, freqs)
-        hifreqdelay = subdelays[-1]
-        subdelays = subdelays-hifreqdelay
-        delaybins = subdelays*binspersec
-        new_subdelays_bins = np.floor(delaybins+0.5)
-
+        new_subdelays_bins = self.get_delaybins(DM) - \
+                                self.get_delaybins(self.curr_dm)
         for ii in range(self.nchan):
             tmp_prof = self.data[ii,:]
             self.data[ii,:] = psr_utils.rotate(tmp_prof, \
-                                            -new_subdelays_bins[ii])
+                                            new_subdelays_bins[ii])
         self.curr_dm = DM
+    
+    def get_profile(self, remove_offset=True):
+        prof = self.data.sum(axis=0).squeeze()
+        if remove_offset:
+            # Remove the mean of the profile
+            prof -= prof.mean()
+        return prof
 
 
 class GaussianFit(object):

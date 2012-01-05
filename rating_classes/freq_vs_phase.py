@@ -27,5 +27,5 @@ class FreqVsPhaseClass(pfd.PfdRatingClass):
         data = pfd.profs.sum(axis=0).squeeze()
         freqs = psr_utils.doppler(pfd.subfreqs, pfd.avgvoverc)
         fvph = dataproducts.FreqVsPhase(data, bestp, bestpd, bestpdd, \
-                                        pfd.currdm, freqs)
+                                        pfd.currdm, freqs, pfd.binspersec)
         return fvph
