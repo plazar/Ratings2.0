@@ -197,14 +197,15 @@ class pfd:
                     out += "%10s = %-20.15g\n" % (k, v)
         return out
 
-    def dedisperse(self, DM=None, interp=0, doppler=0):
+    def dedisperse(self, DM=None, interp=0, doppler=1):
         """
-        dedisperse(DM=self.bestdm, interp=0, doppler=0):
+        dedisperse(DM=self.bestdm, interp=0, doppler=1):
             Rotate (internally) the profiles so that they are de-dispersed
                 at a dispersion measure of DM.  Use FFT-based interpolation if
                 'interp' is non-zero (NOTE: It is off by default!).
                 Doppler shift subband frequencies if doppler is non-zero.
-                (NOTE: It is also off by default.)
+                (NOTE: It is *ON* by default. This default behaviour is
+                        different with respect to PRESTO's prepfold.py)
         """
         if DM is None:
             DM = self.bestdm
