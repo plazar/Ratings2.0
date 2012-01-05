@@ -4,14 +4,19 @@ import psr_utils
 import utils
 
 class TimeVsPhase(object):
-    def __init__(self, data, p, pd, pdd, dm, starttimes):
+    def __init__(self, data, p, pd, pdd, dm, starttimes, \
+                    ref_f, ref_fd, ref_fdd, pdelays_bins):
         self.data = data
         self.curr_p = p
         self.curr_pd = pd
         self.curr_pdd = pdd
         self.dm = dm
         self.start_secs = starttimes
-
+        self.ref_f = ref_f
+        self.ref_fd = ref_fd
+        self.ref_fdd = ref_fdd
+        self.pdelays_bins = pdelays_bins
+    
         self.nsubint, self.nbin = self.data.shape
 
     def adjust_period(self, p=None, pd=None, pdd=None):
@@ -42,14 +47,14 @@ class TimeVsPhase(object):
         fd = psr_utils.p_to_f(self.curr_p, pd)[1]
         f = 1.0/p
         
-        f_diff = f - fcurr
-        fd_diff = fd - fdcurr
+        f_diff = f - self.ref_f
+        fd_diff = fd - self.ref_fd
         if pdd != 0.0:
-            fdd_diff = fdd - fddcurr
+            fdd_diff = fdd - self.ref_fdd
         else:
             fdd_diff = 0.0
         delays = psr_utils.delay_from_foffsets(f_diff, fd_diff, fdd_diff, \
-                                                parttimes)
+                                                parttimes) - self.pdelays_bins
 
         # Convert from delays in phase to delays in bins
         bin_delays = np.fmod(delays * self.nbin, self.nbin)
@@ -66,6 +71,7 @@ class TimeVsPhase(object):
         
         # Save new p, pd, pdd
         self.curr_p, self.curr_pd, self.curr_pdd = p, pd, pdd
+        self.pdelays_bins += new_pdelays_bins
 
     def get_profile(self, remove_offset=True):
         prof = self.data.sum(axis=0).squeeze()
@@ -76,7 +82,8 @@ class TimeVsPhase(object):
 
 
 class FreqVsPhase(object):
-    def __init__(self, data, p, pd, pdd, dm, subfreqs, binspersec):
+    def __init__(self, data, p, pd, pdd, dm, subfreqs, binspersec, \
+                    ref_dm, subdelays_bins):
         self.data = data
         self.p = p
         self.pd = pd
@@ -84,6 +91,8 @@ class FreqVsPhase(object):
         self.curr_dm = dm
         self.subfreqs = subfreqs
         self.binspersec = binspersec
+        self.ref_dm = ref_dm
+        self.subdelays_bins = subdelays_bins
 
         self.nchan, self.nbin = self.data.shape
 
@@ -101,15 +110,17 @@ class FreqVsPhase(object):
             Rotate (internally) the profiles so that they are de-dispersed
                 at a dispersion measure of DM.
         """
-        dDM = DM - self.curr_dm
         new_subdelays_bins = self.get_delaybins(DM) - \
-                                self.get_delaybins(self.curr_dm)
+                                self.subdelays_bins
+        
         #print "DEBUG: in dataproducts -- DM, self.curr_dm, new_subdelays_bins:", DM, self.curr_dm, new_subdelays_bins
+        #print "DEBUG: in dataproducts -- DM, self.get_delaybins(self.curr_dm)-self.subdelays_bins:", DM, self.curr_dm, self.get_delaybins(self.curr_dm)-self.subdelays_bins
         for ii in range(self.nchan):
             tmp_prof = self.data[ii,:]
             self.data[ii,:] = psr_utils.rotate(tmp_prof, \
                                             new_subdelays_bins[ii])
         self.curr_dm = DM
+        self.subdelays_bins += new_subdelays_bins
     
     def get_profile(self, remove_offset=True):
         prof = self.data.sum(axis=0).squeeze()

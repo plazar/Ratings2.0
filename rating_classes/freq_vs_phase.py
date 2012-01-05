@@ -1,3 +1,4 @@
+import copy
 import psr_utils
 import pfd
 import dataproducts
@@ -27,5 +28,7 @@ class FreqVsPhaseClass(pfd.PfdRatingClass):
         data = pfd.profs.sum(axis=0).squeeze()
         freqs = psr_utils.doppler(pfd.subfreqs, pfd.avgvoverc)
         fvph = dataproducts.FreqVsPhase(data, bestp, bestpd, bestpdd, \
-                                        pfd.currdm, freqs, pfd.binspersec)
+                                        pfd.currdm, freqs, pfd.binspersec, \
+                                        0.0, copy.deepcopy(pfd.subdelays_bins))
+                                        
         return fvph

@@ -1,3 +1,4 @@
+import copy
 import pfd
 import dataproducts
 
@@ -16,7 +17,12 @@ class TimeVsPhaseClass(pfd.PfdRatingClass):
         pfd = cand.pfd
         pfd.dedisperse(pfd.bestdm, doppler=1)
         data = pfd.profs.sum(axis=1).squeeze()
+        #
+        # NOTE: pfd.fold_p[123] are actually frequencies!
+        #
         tvph = dataproducts.TimeVsPhase(data, pfd.curr_p1, pfd.curr_p2, \
                                         pfd.curr_p3, pfd.bestdm, \
-                                        pfd.start_secs)
+                                        pfd.start_secs, pfd.fold_p1, \
+                                        pfd.fold_p2, pfd.fold_p3, \
+                                        copy.deepcopy(pfd.pdelays_bins))
         return tvph

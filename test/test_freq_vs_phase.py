@@ -82,12 +82,12 @@ def main():
         cand.pfd.adjust_period()
         pfd_prof = cand.pfd.time_vs_phase().sum(axis=0).squeeze()
         print test_profiles(fvph_prof, pfd_prof, 1e-6)
-        #plt.figure(dm)
-        #plt.plot(fvph_prof, label="FvsPh")
-        #plt.plot(pfd_prof, label="PFD")
-        #plt.title("DM: %g" % dm)
-        #plt.legend(loc='best')
-    #plt.show()
+        plt.figure(dm)
+        plt.plot(fvph_prof, label="FvsPh")
+        plt.plot(pfd_prof, label="PFD")
+        plt.title("DM: %g" % dm)
+        plt.legend(loc='best')
+    plt.show()
 
 if __name__=='__main__':
     main()
