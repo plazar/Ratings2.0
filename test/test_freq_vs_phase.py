@@ -70,7 +70,7 @@ def main():
 
     cand.freq_vs_phase.dedisperse(cand.pfd.bestdm)
     fvph_prof = cand.freq_vs_phase.data.sum(axis=0).squeeze()
-    print test_profiles(pfd_bestprof, fvph_prof, 1e-10)
+    print test_profiles(pfd_bestprof, fvph_prof, 1e-6)
     
     print "Testing dedispersion"
     for dm in np.random.randint(0, 1000, size=10):
