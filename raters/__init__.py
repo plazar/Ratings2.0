@@ -2,8 +2,11 @@ registered_raters = ["duty_cycle", \
                      "gaussian_width", \
                      "gaussian_height", \
                      "gaussian_phase", \
+                     "gaussian_significance", \
                      "known_pulsar", \
-                     "mains_rfi"]
+                     "mains_rfi", \
+                     "dm_comparison_std", \
+                     "dm_comparison_peak"]
 
 __all__ = registered_raters
 
