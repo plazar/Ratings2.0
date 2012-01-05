@@ -94,6 +94,7 @@ class FreqVsPhase(object):
         delaybins = subdelays*self.binspersec
         return np.floor(delaybins+0.5)
         
+
     def dedisperse(self, DM):
         """
         dedisperse(DM=self.bestdm, interp=0, doppler=0):
@@ -103,6 +104,7 @@ class FreqVsPhase(object):
         dDM = DM - self.curr_dm
         new_subdelays_bins = self.get_delaybins(DM) - \
                                 self.get_delaybins(self.curr_dm)
+        #print "DEBUG: in dataproducts -- DM, self.curr_dm, new_subdelays_bins:", DM, self.curr_dm, new_subdelays_bins
         for ii in range(self.nchan):
             tmp_prof = self.data[ii,:]
             self.data[ii,:] = psr_utils.rotate(tmp_prof, \

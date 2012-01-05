@@ -230,6 +230,7 @@ class pfd:
             self.avgprof = (self.profs/self.proflen).sum()
         else:
             new_subdelays_bins = Num.floor(delaybins+0.5)
+            #print "DEBUG: in myprepfold.py -- DM, new_subdelays_bins:", DM, new_subdelays_bins
             for ii in range(self.nsub):
                 rotbins = int(new_subdelays_bins[ii])%self.proflen
                 if rotbins:  # i.e. if not zero
