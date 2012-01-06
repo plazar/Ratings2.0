@@ -1,9 +1,31 @@
 import sys
 import argparse
 import copy
+import multiprocessing
+import traceback
 
 import candidate
 import raters
+
+
+def rate_pfd(pfdfn, rater_instances):
+    """Given the name of a *.pfd file and a list of Rater instances
+        compute the ratings.
+
+        Inputs:
+            pfdfn: Name of the *.pfd file.
+            rater_instances: A list of Rater instances to compute ratings.
+
+        Outputs:
+            cand: The resulting (rated) Candidate object.
+
+        ***NOTE: RatingValues are added directly to the Candidate object.
+    """
+    cand = candidate.read_pfd_file(pfdfn)
+    for rater in rater_instances:
+        ratval = rater.rate(cand)
+        cand.add_rating(ratval)
+    return cand
 
 
 def main():
@@ -11,13 +33,31 @@ def main():
     for rater_name in args.raters:
         rater_module = getattr(raters, rater_name)
         rater_instances.append(rater_module.Rater())
-    for pfdfn in args.infiles:
-        cand = candidate.read_pfd_file(pfdfn)
-        for rater in rater_instances:
-            ratval = rater.rate(cand)
-            cand.add_rating(ratval)
+    
+    rater_pool = multiprocessing.Pool()
+    apply_async = lambda pfdfn: rater_pool.apply_async(rate_pfd, \
+                                            (pfdfn, rater_instances))
+    inprogress = [apply_async(pfdfn) for pfdfn in args.infiles]
+    cands = []
+    failed = []
+    while inprogress:
+        for ii in range(len(inprogress))[::-1]:
+            result = inprogress[ii]
+            if result.ready():
+                if result.successful():
+                    cands.append(result.get())
+                else:
+                    failed.append(result)
+                inprogress.pop(ii)
+    for cand in cands:
         cand.write_ratings_to_file()
-
+    print "Number of failures detected: %d" % len(failed)
+    for fail in failed:
+        try:
+            print type(fail), fail
+            fail.get()
+        except:
+            traceback.print_exc()
 
 class RemoveAllRatersAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
