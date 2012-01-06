@@ -5,6 +5,7 @@ registered_raters = ["duty_cycle", \
                      "gaussian_significance", \
                      "known_pulsar", \
                      "mains_rfi", \
+                     "peak_over_rms", \
                      "dm_comparison_std", \
                      "dm_comparison_peak"]
 
