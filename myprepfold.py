@@ -276,6 +276,7 @@ class pfd:
 
         # Get best f, fd, fdd
         # Use folding values to be consistent with prepfold_plot.c
+        #print "DEBUG: in myprepfold.py -- foldp, foldpd, bestpdd", foldp, foldpd, bestpdd
         bestfdd = psr_utils.p_to_f(foldp, foldpd, bestpdd)[2]
         bestfd = psr_utils.p_to_f(foldp, bestpd)[1]
         bestf = 1.0/bestp
@@ -288,6 +289,9 @@ class pfd:
             fdd_diff = bestfdd - foldfdd
         else:
             fdd_diff = 0.0
+        #print "DEBUG: in myprepfold.py (freq_offsets) -- foldf, foldfd, foldfdd", foldf, foldfd, foldfdd
+        #print "DEBUG: in myprepfold.py (freq_offsets) -- bestf, bestfd, bestfdd", bestf, bestfd, bestfdd
+        #print "DEBUG: in myprepfold.py (freq_offsets) -- f_diff, fd_diff, fdd_diff", f_diff, fd_diff, fdd_diff
 
         return (f_diff, fd_diff, fdd_diff)
 
@@ -307,6 +311,7 @@ class pfd:
 
         # Get delays
         f_diff, fd_diff, fdd_diff = self.freq_offsets(p, pd, pdd)
+        #print "DEBUG: in myprepfold.py -- parttimes", parttimes
         delays = psr_utils.delay_from_foffsets(f_diff, fd_diff, fdd_diff, parttimes)
 
         # Convert from delays in phase to delays in bins

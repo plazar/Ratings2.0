@@ -39,12 +39,13 @@ class TimeVsPhase(object):
         parttimes = self.start_secs.astype('float32').astype('float64')
 
         # Get delays
-        fcurr, fdcurr, fddcurr = psr_utils.p_to_f(self.curr_p, \
-                                                  self.curr_pd, \
-                                                  self.curr_pdd)
+        ref_p, ref_pd, ref_pdd = psr_utils.p_to_f(self.ref_f, \
+                                                  self.ref_fd, \
+                                                  self.ref_fdd)
         
-        fdd = psr_utils.p_to_f(self.curr_p, self.curr_pd, pdd)[2]
-        fd = psr_utils.p_to_f(self.curr_p, pd)[1]
+        #print "DEBUG: in dataproducts.py -- ref_p, ref_pd, pdd", ref_p, ref_pd, pdd
+        fdd = psr_utils.p_to_f(ref_p, ref_pd, pdd)[2]
+        fd = psr_utils.p_to_f(ref_p, pd)[1]
         f = 1.0/p
         
         f_diff = f - self.ref_f
@@ -53,11 +54,15 @@ class TimeVsPhase(object):
             fdd_diff = fdd - self.ref_fdd
         else:
             fdd_diff = 0.0
+        #print "DEBUG: in dataproducts.py -- self.ref_f, self.ref_fd, self.ref_fdd", self.ref_f, self.ref_fd, self.ref_fdd
+        #print "DEBUG: in dataproducts.py -- f, fd, fdd", f, fd, fdd
+        #print "DEBUG: in dataproducts.py -- f_diff, fd_diff, fdd_diff", f_diff, fd_diff, fdd_diff
+        #print "DEBUG: in dataproducts.py -- parttimes", parttimes
         delays = psr_utils.delay_from_foffsets(f_diff, fd_diff, fdd_diff, \
-                                                parttimes) - self.pdelays_bins
+                                                parttimes)
 
         # Convert from delays in phase to delays in bins
-        bin_delays = np.fmod(delays * self.nbin, self.nbin)
+        bin_delays = np.fmod(delays * self.nbin, self.nbin) - self.pdelays_bins
         new_pdelays_bins = np.floor(bin_delays+0.5)
 
         # Rotate subintegrations
