@@ -6,6 +6,7 @@ registered_raters = ["duty_cycle", \
                      "known_pulsar", \
                      "mains_rfi", \
                      "peak_over_rms", \
+                     "prepfold_sigma", \
                      "dm_comparison_std", \
                      "dm_comparison_peak"]
 
