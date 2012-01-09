@@ -76,7 +76,7 @@ def main():
     for dm in np.random.randint(0, 1000, size=10):
         print "DM: %g" % dm,
         cand.freq_vs_phase.dedisperse(dm)
-        fvph_prof = cand.freq_vs_phase.get_profile(remove_offset=False)
+        fvph_prof = cand.freq_vs_phase.get_profile()
 
         cand.pfd.dedisperse(dm, doppler=1)
         cand.pfd.adjust_period()

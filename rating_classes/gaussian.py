@@ -19,7 +19,8 @@ class GaussianProfileClass(profile.ProfileClass):
         """
         k_for_fwhm_approx = lambda fwhm: np.log(2)/(1-np.cos(np.pi*fwhm))
         
-        profile = cand.profile
+        profile = cand.profile.copy()
+        profile -= cand.profile.mean()
         ks = [k_for_fwhm_approx(fwhm/float(len(profile))) for fwhm in range(1,len(profile)//2)]
         pos = int(np.argmin([self._rms_residual(k,profile) for k in ks]))
 

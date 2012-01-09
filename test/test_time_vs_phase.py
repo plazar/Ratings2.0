@@ -129,7 +129,7 @@ def main():
     cand.time_vs_phase.adjust_period(bestp, bestpd, bestpdd)
     tvph = pfd.time_vs_phase()
     print test_img(cand.time_vs_phase.data, tvph, 1e-6)
-    plt.plot(cand.time_vs_phase.get_profile(remove_offset=False))
+    plt.plot(cand.time_vs_phase.get_profile())
     plt.plot(tvph.sum(axis=0).squeeze())
     plt.show()
 

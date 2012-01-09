@@ -23,7 +23,4 @@ class ProfileClass(time_vs_phase.TimeVsPhaseClass):
             bestpdd = pfd.topo_p3
         tvph = cand.time_vs_phase
         tvph.adjust_period(bestp, bestpd, bestpdd)
-        prof = tvph.data.sum(axis=0).squeeze()
-        # Remove mean of profile
-        prof -= prof.mean()
-        return prof
+        return tvph.get_profile()

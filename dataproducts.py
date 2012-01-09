@@ -78,11 +78,8 @@ class TimeVsPhase(object):
         self.curr_p, self.curr_pd, self.curr_pdd = p, pd, pdd
         self.pdelays_bins += new_pdelays_bins
 
-    def get_profile(self, remove_offset=True):
+    def get_profile(self):
         prof = self.data.sum(axis=0).squeeze()
-        if remove_offset:
-            # Remove the mean of the profile
-            prof -= prof.mean()
         return prof
 
 
@@ -127,11 +124,8 @@ class FreqVsPhase(object):
         self.curr_dm = DM
         self.subdelays_bins += new_subdelays_bins
     
-    def get_profile(self, remove_offset=True):
+    def get_profile(self):
         prof = self.data.sum(axis=0).squeeze()
-        if remove_offset:
-            # Remove the mean of the profile
-            prof -= prof.mean()
         return prof
 
 
