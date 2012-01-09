@@ -6,7 +6,7 @@ from rating_classes import gaussian
 
 class GaussianSignificanceRater(base.BaseRater):
     short_name = "gausssig"
-    long_name = "Gaussian Significane Rating"
+    long_name = "Gaussian Significance Rating"
     description = "Compute the significance of the best-fit Gaussian. " \
                   "The function being fit is not actually a Gaussian, " \
                   "it's a von Mises distribution (exp(k*cos(theta)))"
