@@ -3,6 +3,7 @@ import argparse
 import copy
 import multiprocessing
 import traceback
+import textwrap
 
 import candidate
 import raters
@@ -29,6 +30,19 @@ def rate_pfd(pfdfn, rater_instances):
 
 
 def main():
+    if args.list_raters:
+        print "Number of raters registered: %d" % len(raters.registered_raters)
+        for rater_name in raters.registered_raters:
+            rater_module = getattr(raters, rater_name)
+            rater = rater_module.Rater()
+            print "%s (v%d)" % (rater.long_name, rater.version)
+            if args.verbosity:
+                print ""
+                for line in rater.description.split('\n'):
+                    print textwrap.fill(line, width=70)
+                print "-"*25
+        sys.exit(0)
+
     rater_instances = []
     for rater_name in args.raters:
         rater_module = getattr(raters, rater_name)
@@ -65,8 +79,9 @@ def main():
         if args.write_to_file:
             cand.write_ratings_to_file()
         if args.write_to_screen:
+            print cand.pfdfn
             print cand.get_ratings_overview()
-
+            print '-'*25
 
 class RemoveAllRatersAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -114,7 +129,18 @@ if __name__ == '__main__':
     parser.add_argument('infiles', metavar="INFILES", \
                          nargs='+', type=str, \
                          help="PRESTO *.pfd files to rate.")
-    parser.add_argument('-x', '--exclude',  dest='raters', \
+    parser.add_argument('-v', '--more-verbose', dest='verbosity', \
+                         default=0, action='count', \
+                         help="Turn up verbosity by one notch. " \
+                                "(Default: Don't be verbose (verbosity=0).)")
+    parser.add_argument('-d', '--debug', dest='debug', \
+                         default=False, action='store_true', \
+                         help="Turn on debugging output. " \
+                                "(Default: Don't print debugging info.)")
+    parser.add_argument('-L', '--list-raters', dest='list_raters', \
+                        default=False, action='store_true', \
+                        help="List registered raters and exit.")
+    parser.add_argument('-x', '--exclude', dest='raters', \
                          type=str, default=[], nargs=1, \
                          action=RemoveOneRaterAction, \
                          help="Remove rater from list of ratings to apply.")
@@ -132,7 +158,7 @@ if __name__ == '__main__':
                          help="Include all registered ratings in list " \
                                 "of ratings to apply.")
     parser.add_argument('-P', '--num-procs', dest="num_procs", \
-                        type=int, default=1, nargs=1, \
+                        type=int, default=1, \
                         help="The number of rater processes to use. " \
                                 "Each thread rates a separate candidate. " \
                                 "(Default: use one rater thread.)")
