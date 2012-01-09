@@ -8,6 +8,7 @@ registered_raters = ["duty_cycle", \
                      "peak_over_rms", \
                      "prepfold_sigma", \
                      "dm_comparison_std", \
+                     "dm_comparison_chisqr", \
                      "dm_comparison_peak"]
 
 __all__ = registered_raters
