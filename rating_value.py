@@ -19,6 +19,9 @@ class RatingValue(object):
         text += "Value: %.12g" % self.value
         return text
 
+    def get_short_string(self):
+        return "%s (v%d): %g" % (self.name, self.version, self.value)
+
 
 def parse_string(string):
     """Parse a string for rating values and return a list

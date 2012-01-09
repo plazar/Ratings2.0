@@ -33,31 +33,40 @@ def main():
     for rater_name in args.raters:
         rater_module = getattr(raters, rater_name)
         rater_instances.append(rater_module.Rater())
-    
-    rater_pool = multiprocessing.Pool()
-    apply_async = lambda pfdfn: rater_pool.apply_async(rate_pfd, \
-                                            (pfdfn, rater_instances))
-    inprogress = [apply_async(pfdfn) for pfdfn in args.infiles]
+
     cands = []
-    failed = []
-    while inprogress:
-        for ii in range(len(inprogress))[::-1]:
-            result = inprogress[ii]
-            if result.ready():
-                if result.successful():
-                    cands.append(result.get())
-                else:
-                    failed.append(result)
-                inprogress.pop(ii)
+    if args.num_procs > 1:
+        print "Using %d rater threads" % args.num_procs
+        rater_pool = multiprocessing.Pool(processes=args.num_procs)
+        apply_async = lambda pfdfn: rater_pool.apply_async(rate_pfd, \
+                                                (pfdfn, rater_instances))
+        inprogress = [apply_async(pfdfn) for pfdfn in args.infiles]
+        failed = []
+        while inprogress:
+            for ii in range(len(inprogress))[::-1]:
+                result = inprogress[ii]
+                if result.ready():
+                    if result.successful():
+                        cands.append(result.get())
+                    else:
+                        failed.append(result)
+                    inprogress.pop(ii)
+        print "Number of failures detected: %d" % len(failed)
+        for fail in failed:
+            try:
+                print type(fail), fail
+                fail.get()
+            except:
+                traceback.print_exc()
+    else:
+        for pfdfn in args.infiles:
+            cands.append(rate_pfd(pfdfn, rater_instances))
     for cand in cands:
-        cand.write_ratings_to_file()
-    print "Number of failures detected: %d" % len(failed)
-    for fail in failed:
-        try:
-            print type(fail), fail
-            fail.get()
-        except:
-            traceback.print_exc()
+        if args.write_to_file:
+            cand.write_ratings_to_file()
+        if args.write_to_screen:
+            print cand.get_ratings_overview()
+
 
 class RemoveAllRatersAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -122,5 +131,18 @@ if __name__ == '__main__':
                          action=AddAllRatersAction, \
                          help="Include all registered ratings in list " \
                                 "of ratings to apply.")
+    parser.add_argument('-P', '--num-procs', dest="num_procs", \
+                        type=int, default=1, nargs=1, \
+                        help="The number of rater processes to use. " \
+                                "Each thread rates a separate candidate. " \
+                                "(Default: use one rater thread.)")
+    parser.add_argument('--no-write-to-file', dest='write_to_file', \
+                        default=True, action='store_false', \
+                        help="Do not write out ratings to file. " \
+                                "(Default: Write out file.)")
+    parser.add_argument('--no-write-to-screen', dest='write_to_screen', \
+                        default=True, action='store_false', \
+                        help="Do not write out ratings to screen. " \
+                                "(Default: Write ratings to screen.)")
     args = parser.parse_args()
     main()

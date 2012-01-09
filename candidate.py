@@ -42,7 +42,10 @@ class Candidate(object):
         self.rating_values.append(ratval)
 
     def get_ratings_string(self, sep=('-'*45+'\n')):
-        return sep.join([str(rv)+'\n'for rv in self.rating_values])
+        return sep.join([str(rv)+'\n' for rv in self.rating_values])
+    
+    def get_ratings_overview(self):
+        return '\n'.join([rv.get_short_string() for rv in self.rating_values])
 
     def write_ratings_to_file(self, fn=None, *args, **kwargs):
         """Write candidate's ratings to file.
