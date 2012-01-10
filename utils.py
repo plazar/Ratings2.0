@@ -2,6 +2,9 @@ import scipy.stats
 import scipy.special
 import numpy as np
 
+class RatingError(exception):
+    pass
+
 def vonmises_coefficient(k,m):
     return scipy.special.ive(m,k)/scipy.special.ive(0,k)
 
