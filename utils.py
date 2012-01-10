@@ -4,7 +4,7 @@ import numpy as np
 
 import database
 
-class RatingError(exception):
+class RatingError(Exception):
     pass
 
 
@@ -99,7 +99,7 @@ class RatingIDCache(object):
             Output:
                 id: The pdm_rating_type_id from the DB.
         """
-        db = database.Database(self.dbname):
+        db = database.Database(self.dbname)
         # Check for rating type
         db.execute("SELECT pdm_rating_type_id FROM pdm_rating_type " \
                     "WHERE name=?", (name,))
