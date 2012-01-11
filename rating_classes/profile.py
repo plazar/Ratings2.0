@@ -1,6 +1,7 @@
 import time_vs_phase
+import freq_vs_phase
 
-class ProfileClass(time_vs_phase.TimeVsPhaseClass):
+class ProfileClass(time_vs_phase.TimeVsPhaseClass, freq_vs_phase.FreqVsPhaseClass):
     data_key = "profile"
 
     def _compute_data(self, cand):
