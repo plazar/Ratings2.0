@@ -40,3 +40,18 @@ def parse_string(string):
         ratvals.append(RatingValue(grps['name'], int(grps['version']), \
                                     grps['descr'], float(grps['value'])))
     return ratvals
+
+
+def read_file(ratfilenm):
+    """Read a rating file, and return the rating values parsed from it.
+    
+        Input:
+            ratfilenm: Name of the *.rat file.
+
+        Output:
+            ratvals: A list of RatingValue objects parsed from the file.
+    """
+    f = open(ratfilenm, 'r')
+    contents = f.read()
+    f.close()
+    return parse_string(contents)
