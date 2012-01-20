@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.stats
+
 import psr_utils
 
 import utils
@@ -177,4 +179,139 @@ class GaussianFit(object):
     def fwhm(self):
         s_height = (np.exp(-2*self.k) + 1)/2.
         return 2*np.arccos(1 + np.log(s_height)/self.k)/(2*np.pi)
+
+
+class MultiGaussComponent(object):
+    def __init__(self, amp, std, phs):
+        """Constructor for MultiGaussComponent, an object to represent
+            a single gaussian component of a multiple-gaussian fit to
+            a profile.
+
+            Inputs:
+                amp: The amplitude of the gaussian component.
+                std: The standard deviation of the gaussian component.
+                phs: The phase of the gaussian component.
+
+            Output:
+                component: The MultiGaussComponent object.
+        """
+        self.amp = amp
+        self.std = std
+        self.phs = phs
+
+    def __str__(self):
+        s = "Amplitude: %g, Std Dev: %g, Phase: %g" % \
+                    (self.amp, self.std, self.phs)
+        return s
+
+    def make_gaussian(self, nbins):
+        """Return an aray of length 'nbins' containing the gaussian component.
+
+           Inputs:
+               nbins: The number of bins in the profile
+ 
+           Output:
+               gaussian: Array of data
+           
+        """
+        # Create an array of phase bins going from 0 --> 1
+        bins = np.arange(nbins, dtype=np.float)/nbins
+
+        # Create an array for the Gaussian profile
+        gaussian = self.amp*np.sqrt(2*np.pi*self.std**2) * \
+                    scipy.stats.norm.pdf(bins, loc=self.phs, scale=self.std)
+        return gaussian
+
+
+class MultiGaussFit(object):
+    def __init__(self, offset=0.0, components=[]):
+        """Constructor for MultiGaussFit, a multiple-gaussian fit to
+            a profile.
+
+            Inputs:
+                offset: The DC offset of the fit. (Default: 0.0)
+                components: A list of MultiGaussComponents making up the
+                    fit to the profile. (Default: No components)
+
+            Output:
+                fit: The MultiGaussFit object.
+        """
+        self.offset = offset
+        self.components = components
+
+    def __str__(self):
+        lines = ["Multi-Gaussian fit with %d components" % \
+                    len(self.components)]
+        for ii, comp in enumerate(self.components):
+            lines.append("    Component %d: %s" % (ii, str(comp)))
+        return '\n'.join(lines)
+
+    def add_component(self, comp):
+        """Add a component to the MultiGaussianFit.
+            
+            Input:
+                comp: A MulitGaussComponent to add.
+
+            Outputs:
+                None
+        """
+        self.components.append(comp)
+
+    def make_gaussians(self, nbins):
+        """Return an array of length 'nbins' containing the gaussian fit.
+
+           Inputs:
+               nbins: The number of bins in the profile
+ 
+           Output:
+               gaussian: Array of data
+           
+        """
+        # Determine the number of Gaussian profiles to make
+        ngaussians = len(self.components)
         
+        # Create an array of phase bins going from 0 --> 1
+        bins = np.arange(nbins, dtype=np.float)/nbins
+
+        # Create an array for the Gaussian profile
+        gaussians = np.zeros_like(bins) + self.offset
+
+        # Add each individual Gaussian to the full profile
+        for comp in self.components:
+            #print "DEBUG: comp.amp, comp.std, comp.phs", comp.amp, comp.std, comp.phs
+            gaussians += comp.amp*np.sqrt(2*np.pi*comp.std**2) * \
+                    scipy.stats.norm.pdf(bins, loc=comp.phs, scale=comp.std)
+        return gaussians
+
+    def get_resids(self, data):
+        model = self.make_gaussians(len(data))
+        resids = data - model
+        return resids 
+    
+    def get_chisqr(self, data):
+        resids = self.get_resids(data)
+        return np.sum(resids**2)
+
+    def get_dof(self, nbins):
+        return nbins - self.get_num_params()
+
+    def get_num_params(self):
+        return 1 + 3*len(self.components)
+
+    def plot_comparison(self, data, individual=False):
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        phases = np.linspace(0.0, 1.0, len(data), endpoint=False)
+        phases_10x = np.linspace(0.0, 1.0, len(data)*10, endpoint=False)
+
+        plt.plot(phases, data, c='k', label="Profile")
+        
+        plt.plot(phases_10x, self.make_gaussians(len(data)*10), c='r', label="Fit")
+        if individual:
+            for comp in self.components:
+                plt.plot(phases_10x, self.offset+comp.make_gaussian(len(data)*10), ls='--')
+        plt.xlabel("Phase")
+        plt.ylabel("Intensity (arbitrary units)")
+        plt.legend(loc='best')
+        plt.show()
+
