@@ -243,7 +243,7 @@ class MultiGaussFit(object):
         lines = ["Multi-Gaussian fit with %d components" % \
                     len(self.components)]
         for ii, comp in enumerate(self.components):
-            lines.append("    Component %d: %s" % (ii, str(comp)))
+            lines.append("    Component %d: %s" % (ii+1, str(comp)))
         return '\n'.join(lines)
 
     def add_component(self, comp):
@@ -279,8 +279,7 @@ class MultiGaussFit(object):
         # Add each individual Gaussian to the full profile
         for comp in self.components:
             #print "DEBUG: comp.amp, comp.std, comp.phs", comp.amp, comp.std, comp.phs
-            gaussians += comp.amp*np.sqrt(2*np.pi*comp.std**2) * \
-                    scipy.stats.norm.pdf(bins, loc=comp.phs, scale=comp.std)
+            gaussians += comp.make_gaussian(nbins)
         return gaussians
 
     def get_resids(self, data):
