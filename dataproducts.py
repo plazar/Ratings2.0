@@ -303,6 +303,7 @@ class MultiGaussFit(object):
         phases = np.linspace(0.0, 1.0, len(data), endpoint=False)
         phases_10x = np.linspace(0.0, 1.0, len(data)*10, endpoint=False)
 
+        ax = plt.axes([0.1, 0.1, 0.85, 0.65])
         plt.plot(phases, data, c='k', label="Profile")
         
         plt.plot(phases_10x, self.make_gaussians(len(data)*10), c='r', label="Fit")
@@ -312,5 +313,11 @@ class MultiGaussFit(object):
         plt.xlabel("Phase")
         plt.ylabel("Intensity (arbitrary units)")
         plt.legend(loc='best')
+        
+        ax = plt.axes([0.1, 0.75, 0.85, 0.15], sharex=ax)
+        plt.plot(phases, self.get_resids(data), c='k')
+        plt.axhline(0.0, color='k', ls='--')
+        plt.ylabel("Residuals")
+        plt.setp(ax.xaxis.get_ticklabels(), visible=False)
         plt.show()
 
