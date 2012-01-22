@@ -107,8 +107,9 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
 
                 new_params, status = scipy.optimize.leastsq(func, trial_params)
                 if status not in (1,2,3,4):
-                    raise ValueError("Status returned by scipy.optimize.leastsq" \
-                                        "indicates the fit failed! (%d)" % status)
+                    raise utils.RatingError("Status returned by " \
+                                        "scipy.optimize.leastsq (%d) " \
+                                        "indicates the fit failed!" % status)
 
             # Calculate the new residuals and statistics
             new_fit = utils.multigaussfit_from_paramlist(new_params)
