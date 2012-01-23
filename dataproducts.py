@@ -181,68 +181,67 @@ class GaussianFit(object):
         return 2*np.arccos(1 + np.log(s_height)/self.k)/(2*np.pi)
 
 
-class MultiGaussComponent(object):
-    def __init__(self, amp, std, phs):
-        """Constructor for MultiGaussComponent, an object to represent
-            a single gaussian component of a multiple-gaussian fit to
+class MultiVonMisesComponent(object):
+    def __init__(self, amp, shape, phs):
+        """Constructor for MultiVonMisesComponent, an object to represent
+            a single component of a multiple-vonmises fit to
             a profile.
 
             Inputs:
-                amp: The amplitude of the gaussian component.
-                std: The standard deviation of the gaussian component.
-                phs: The phase of the gaussian component.
+                amp: The amplitude of the von Mises component.
+                shape: The shape parameter of the von Mises component.
+                phs: The phase of the von Mises component.
 
             Output:
-                component: The MultiGaussComponent object.
+                component: The MultiVonMisesComponent object.
         """
         self.amp = amp
-        self.std = std
+        self.shape = shape
         self.phs = phs
 
     def __str__(self):
-        s = "Amplitude: %g, Std Dev: %g, Phase: %g" % \
-                    (self.amp, self.std, self.phs)
+        s = "Amplitude: %g, Shape: %g, Phase: %g" % \
+                    (self.amp, self.shape, self.phs)
         return s
 
-    def make_gaussian(self, nbins):
-        """Return an aray of length 'nbins' containing the gaussian component.
+    def make_vonmises(self, nbins):
+        """Return an aray of length 'nbins' containing the von Mises component.
 
            Inputs:
                nbins: The number of bins in the profile
  
            Output:
-               gaussian: Array of data
+               vonmises: Array of data
            
         """
         # Create an array of phase bins going from 0 --> 1
         bins = np.arange(nbins, dtype=np.float)/nbins
 
-        # Create an array for the Gaussian profile
-        gaussian = self.amp*np.sqrt(2*np.pi*self.std**2) * \
-                    scipy.stats.vonmises.pdf(bins, 1/self.std, loc=self.phs, \
+        # Create an array for the von Mises profile
+        vonmises = self.amp*np.sqrt(2*np.pi/self.shape**2) * \
+                    scipy.stats.vonmises.pdf(bins, self.shape, loc=self.phs, \
                                                 scale=1.0/(2.0*np.pi))
-                    #scipy.stats.norm.pdf(bins, loc=self.phs, scale=self.std)
-        return gaussian
+        return vonmises
 
 
-class MultiGaussFit(object):
+class MultiVonMisesFit(object):
     def __init__(self, offset=0.0, components=[]):
-        """Constructor for MultiGaussFit, a multiple-gaussian fit to
+        """Constructor for MultiVonMisesFit, a multiple-vonmises fit to
             a profile.
 
             Inputs:
                 offset: The DC offset of the fit. (Default: 0.0)
-                components: A list of MultiGaussComponents making up the
+                components: A list of MultiVonMisesComponents making up the
                     fit to the profile. (Default: No components)
 
             Output:
-                fit: The MultiGaussFit object.
+                fit: The MultiVonMisesFit object.
         """
         self.offset = offset
         self.components = components
 
     def __str__(self):
-        lines = ["Multi-Gaussian fit with %d components" % \
+        lines = ["Multi-VonMises fit with %d components" % \
                     len(self.components)]
         lines.append("    Offset: %g" % self.offset)
         for ii, comp in enumerate(self.components):
@@ -250,43 +249,42 @@ class MultiGaussFit(object):
         return '\n'.join(lines)
 
     def add_component(self, comp):
-        """Add a component to the MultiGaussianFit.
+        """Add a component to the MultiVonMisesFit.
             
             Input:
-                comp: A MulitGaussComponent to add.
+                comp: A MulitVonMisesComponent to add.
 
             Outputs:
                 None
         """
         self.components.append(comp)
 
-    def make_gaussians(self, nbins):
-        """Return an array of length 'nbins' containing the gaussian fit.
+    def make_vonmises(self, nbins):
+        """Return an array of length 'nbins' containing the von Mises fit.
 
            Inputs:
                nbins: The number of bins in the profile
  
            Output:
-               gaussian: Array of data
+               vonmises: Array of data
            
         """
-        # Determine the number of Gaussian profiles to make
-        ngaussians = len(self.components)
+        # Determine the number of von Mises profiles to make
+        numvonmises = len(self.components)
         
         # Create an array of phase bins going from 0 --> 1
         bins = np.arange(nbins, dtype=np.float)/nbins
 
-        # Create an array for the Gaussian profile
-        gaussians = np.zeros_like(bins) + self.offset
+        # Create an array for the von Mises profile
+        vonmises = np.zeros_like(bins) + self.offset
 
         # Add each individual Gaussian to the full profile
         for comp in self.components:
-            #print "DEBUG: comp.amp, comp.std, comp.phs", comp.amp, comp.std, comp.phs
-            gaussians += comp.make_gaussian(nbins)
-        return gaussians
+            vonmises += comp.make_vonmises(nbins)
+        return vonmises
 
     def get_resids(self, data):
-        model = self.make_gaussians(len(data))
+        model = self.make_vonmises(len(data))
         resids = data - model
         return resids 
     
@@ -309,10 +307,10 @@ class MultiGaussFit(object):
         ax = plt.axes([0.1, 0.1, 0.85, 0.65])
         plt.plot(phases, data, c='k', label="Profile")
         
-        plt.plot(phases_10x, self.make_gaussians(len(data)*10), c='r', label="Fit")
+        plt.plot(phases_10x, self.make_vonmises(len(data)*10), c='r', label="Fit")
         if individual:
             for comp in self.components:
-                plt.plot(phases_10x, self.offset+comp.make_gaussian(len(data)*10), ls='--')
+                plt.plot(phases_10x, self.offset+comp.make_vonmises(len(data)*10), ls='--')
         plt.xlabel("Phase")
         plt.ylabel("Intensity (arbitrary units)")
         plt.legend(loc='best')
