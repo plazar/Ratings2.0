@@ -1,9 +1,13 @@
 import pprint
 import sys
 import numpy as np
-
+import matplotlib.pyplot as plt
 import candidate
+import utils
+
 from rating_classes import multigauss
+
+import profile_tools
 
 def main():
     pfdfn = sys.argv[1]
@@ -32,8 +36,9 @@ def main():
     data = cand.profile.copy()
     data /= np.sqrt(cand.pfd.varprof)
     data -= data.mean()
+    
     cand.multigaussfit.plot_comparison(data, True)
-
+    plt.show()
 
 if __name__ == '__main__':
     mgauss = multigauss.MultipleGaussianProfileClass()
