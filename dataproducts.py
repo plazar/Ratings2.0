@@ -219,9 +219,7 @@ class MultiGaussComponent(object):
 
         # Create an array for the Gaussian profile
         gaussian = self.amp*np.sqrt(2*np.pi*self.std**2) * \
-                    scipy.stats.vonmises.pdf(bins, 1/self.std, loc=self.phs, \
-                                                scale=1.0/(2.0*np.pi))
-                    #scipy.stats.norm.pdf(bins, loc=self.phs, scale=self.std)
+                    scipy.stats.norm.pdf(bins, loc=self.phs, scale=self.std)
         return gaussian
 
 
@@ -244,7 +242,6 @@ class MultiGaussFit(object):
     def __str__(self):
         lines = ["Multi-Gaussian fit with %d components" % \
                     len(self.components)]
-        lines.append("    Offset: %g" % self.offset)
         for ii, comp in enumerate(self.components):
             lines.append("    Component %d: %s" % (ii+1, str(comp)))
         return '\n'.join(lines)
@@ -300,7 +297,7 @@ class MultiGaussFit(object):
     def get_num_params(self):
         return 1 + 3*len(self.components)
 
-    def plot_comparison(self, data, individual=False, show=False):
+    def plot_comparison(self, data, individual=False):
         import matplotlib.pyplot as plt
         fig = plt.figure()
         phases = np.linspace(0.0, 1.0, len(data), endpoint=False)
@@ -322,6 +319,5 @@ class MultiGaussFit(object):
         plt.axhline(0.0, color='k', ls='--')
         plt.ylabel("Residuals")
         plt.setp(ax.xaxis.get_ticklabels(), visible=False)
-        if show:
-            plt.show()
+        plt.show()
 

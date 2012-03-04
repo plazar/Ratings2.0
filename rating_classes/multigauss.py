@@ -95,7 +95,7 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
                     return [0, fit.get_resids(data)]
              
                 # Now fit
-                mpfit_out     = mpfit.mpfit(func, parinfo=params_dict, quiet=True)
+                mpfit_out     = mpfit.mpfit(func, parinfo=params_dict, quiet=False)
                 # Store the new best-fit parameters
                 new_params    = mpfit_out.params
             else:
