@@ -7,16 +7,16 @@ import utils
 from rating_classes import profile
 
 """
-Multiple von Mises component fitting to pulse profiles.
+Multiple Gaussian component fitting to pulse profiles.
 
-Modified from Ryan Lynch's code for the orignal Ratings project.
+Copied from Ryan Lynch's code for the orignal Ratings project.
 """
 
-class MultipleVonMisesProfileClass(profile.ProfileClass):
-    data_key = "multivonmisesfit"
+class MultipleGaussianProfileClass(profile.ProfileClass):
+    data_key = "multigaussfit"
     
     # The maximum number of Gaussian components to fit
-    max_vonmises = 5
+    max_gaussians = 5
 
     # The threshold probability that the improvement in a fit from an additional
     # profile component is due to chance (as calculated via an F-test) for
@@ -24,14 +24,14 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
     F_stat_threshold = 0.01
     
     def _compute_data(self, cand):
-        """Fit the candidate's profile with mulitple von Mises 
+        """Fit the candidate's profile with mulitple gaussian
             components and return the fit's parametrs.
 
             Input:
                 cand: A ratings2.0 Candidate object.
 
             Output:
-                multivonmisesfit: The corresponding fit. A MultiVonMisesFit object.
+                multigaussfit: The corresponding fit. A MultiGaussFit object.
         """
         data = cand.profile.copy()
         data /= np.sqrt(cand.pfd.varprof)
@@ -39,7 +39,7 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
 
         # Initialize some starting values
         nbins      = len(data)
-        nvonmises = 0
+        ngaussians = 0
         # After normalization the first parameter (offset) should be close to zero
         prev_params = [0.0]
         # Nothing fit yet, so residuals are just the data values
@@ -56,17 +56,17 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
         # from the highest remaining residual and from the previous best-fit values
         # for previous components
         while fit:
-            nvonmises  += 1
+            ngaussians  += 1
             # Update values based on results of previous run
             trial_params = list(prev_params)
  
             # Guess the parameters for the next profile component
             amplitude = max(prev_residuals)
             # Base std_dev on stats.norm normalization
-            shape   = (np.sqrt(2*np.pi)*amplitude)
+            std_dev   = 1/(np.sqrt(2*np.pi)*amplitude)
             phase     = np.argmax(prev_residuals)/float(nbins)
             trial_params.append(amplitude)
-            trial_params.append(shape)
+            trial_params.append(std_dev)
             trial_params.append(phase)
             if 0:
                 # params_dict is used by mpfit to get initial values and constraints on
@@ -90,7 +90,7 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
 
                 # Define the fitting function for mpfit
                 def func(params, fjac=None, errs=None):
-                    fit = utils.multivonmisesfit_from_paramlist(params)
+                    fit = utils.multigaussfit_from_paramlist(params)
                     # Return values are [status, residuals]
                     return [0, fit.get_resids(data)]
              
@@ -102,7 +102,7 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
                 import scipy.optimize
                 def func(params):
                     #print "DEBUG: params", params
-                    fit = utils.multivonmisesfit_from_paramlist(params)
+                    fit = utils.multigaussfit_from_paramlist(params)
                     return fit.get_resids(data)
 
                 new_params, status = scipy.optimize.leastsq(func, trial_params)
@@ -112,7 +112,7 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
                                         "indicates the fit failed!" % status)
 
             # Calculate the new residuals and statistics
-            new_fit = utils.multivonmisesfit_from_paramlist(new_params)
+            new_fit = utils.multigaussfit_from_paramlist(new_params)
             #print "DEBUG: new_fit", new_fit
             new_residuals = new_fit.get_resids(data)
             new_chi2      = new_fit.get_chisqr(data)
@@ -128,7 +128,7 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
             # then Ftest doesn't return a valid number.  Also stop if we reach
             # the maximum number of Gaussian profile components
             if F_stat > self.F_stat_threshold or np.isnan(F_stat) \
-                   or nvonmises > self.max_vonmises:
+                   or ngaussians > self.max_gaussians:
                 fit    = False
             # Otherwise, keep fitting and update the parameters for the next pass
             else:
@@ -141,6 +141,6 @@ class MultipleVonMisesProfileClass(profile.ProfileClass):
         # We stop when a fit is no longer needed, so we have to return the values
         # from the /previous/ run (otherwise we return the unneeded fit)
         #print "DEBUG: prev_params", prev_params
-        finalfit = utils.multivonmisesfit_from_paramlist(prev_params)
+        finalfit = utils.multigaussfit_from_paramlist(prev_params)
         #print "DEBUG: finalfit", finalfit
         return finalfit 

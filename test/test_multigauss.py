@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import candidate
 import utils
 
-from rating_classes import multivonmises
+from rating_classes import multigauss
 
 import profile_tools
 
@@ -25,21 +25,21 @@ def main():
     #pprint.pprint(cand.__dict__)
     #print "-"*10
 
-    vm.add_data(cand)
+    mgauss.add_data(cand)
 
-    print "Added multi-vonmises fit to cand"
+    print "Added multi-gaussian fit to cand"
     #pprint.pprint(cand.__dict__)
     #print "-"*10
 
-    print cand.multivonmisesfit
+    print cand.multigaussfit
 
     data = cand.profile.copy()
     data /= np.sqrt(cand.pfd.varprof)
     data -= data.mean()
     
-    cand.multivonmisesfit.plot_comparison(data, True)
+    cand.multigaussfit.plot_comparison(data, True)
     plt.show()
 
 if __name__ == '__main__':
-    vm = multivonmises.MultipleVonMisesProfileClass()
+    mgauss = multigauss.MultipleGaussianProfileClass()
     main()

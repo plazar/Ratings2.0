@@ -162,12 +162,12 @@ def vonmises_histogram(k,mu,n,factor=2):
                    (np.maximum(np.arange(m), 1)*2.0j*np.pi))*n*factor
     return np.mean(np.reshape(longhist, (n,factor)), axis=-1)/factor
 
-def multivonmisesfit_from_paramlist(params):
+def multigaussfit_from_paramlist(params):
     comps = []
     for ii in range(1, len(params), 3):
         amp = params[ii]
         std = params[ii+1]
         phs = params[ii+2]
-        comps.append(dataproducts.MultiVonMisesComponent(amp, std, phs))
-    fit = dataproducts.MultiVonMisesFit(offset=params[0], components=comps)
+        comps.append(dataproducts.MultiGaussComponent(amp, std, phs))
+    fit = dataproducts.MultiGaussFit(offset=params[0], components=comps)
     return fit

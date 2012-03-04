@@ -10,7 +10,7 @@ registered_raters = ["duty_cycle", \
                      "dm_comparison_std", \
                      "dm_comparison_chisqr", \
                      "dm_comparison_peak", \
-                     "multivonmises_goodness"]
+                     "multigauss_goodness"]
 
 __all__ = registered_raters
 
