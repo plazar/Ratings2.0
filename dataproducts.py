@@ -182,26 +182,26 @@ class GaussianFit(object):
 
 
 class MultiGaussComponent(object):
-    def __init__(self, amp, std, phs):
+    def __init__(self, amp, fwhm, phs):
         """Constructor for MultiGaussComponent, an object to represent
             a single gaussian component of a multiple-gaussian fit to
             a profile.
 
             Inputs:
                 amp: The amplitude of the gaussian component.
-                std: The standard deviation of the gaussian component.
+                fwhm: The full-width at half-maximum of the gaussian component.
                 phs: The phase of the gaussian component.
 
             Output:
                 component: The MultiGaussComponent object.
         """
         self.amp = amp
-        self.std = std
+        self.fwhm = fwhm
         self.phs = phs
 
     def __str__(self):
-        s = "Amplitude: %g, Std Dev: %g, Phase: %g" % \
-                    (self.amp, self.std, self.phs)
+        s = "Amplitude: %g, FWHM: %g, Phase: %g" % \
+                    (self.amp, self.fwhm, self.phs)
         return s
 
     def make_gaussian(self, nbins):
@@ -214,12 +214,9 @@ class MultiGaussComponent(object):
                gaussian: Array of data
            
         """
-        # Create an array of phase bins going from 0 --> 1
-        bins = np.arange(nbins, dtype=np.float)/nbins
-
         # Create an array for the Gaussian profile
-        gaussian = self.amp*np.sqrt(2*np.pi*self.std**2) * \
-                    scipy.stats.norm.pdf(bins, loc=self.phs, scale=self.std)
+        gaussians = self.max*self.fwhm/2*np.sqrt(np.pi/np.log(2)) * \
+                        psr_utils.gaussian_profile(nbins,self.phs,self.fwhm)
         return gaussian
 
 
@@ -270,11 +267,8 @@ class MultiGaussFit(object):
         # Determine the number of Gaussian profiles to make
         ngaussians = len(self.components)
         
-        # Create an array of phase bins going from 0 --> 1
-        bins = np.arange(nbins, dtype=np.float)/nbins
-
         # Create an array for the Gaussian profile
-        gaussians = np.zeros_like(bins) + self.offset
+        gaussians = np.zeros(nbins) + self.offset
 
         # Add each individual Gaussian to the full profile
         for comp in self.components:

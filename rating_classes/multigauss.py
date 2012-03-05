@@ -12,6 +12,8 @@ Multiple Gaussian component fitting to pulse profiles.
 Copied from Ryan Lynch's code for the orignal Ratings project.
 """
 
+USE_MPFIT = False # The alternative is scipy.optimize.leastsq
+
 class MultipleGaussianProfileClass(profile.ProfileClass):
     data_key = "multigaussfit"
     
@@ -62,13 +64,13 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
  
             # Guess the parameters for the next profile component
             amplitude = max(prev_residuals)
-            # Base std_dev on stats.norm normalization
-            std_dev   = 1/(np.sqrt(2*np.pi)*amplitude)
-            phase     = np.argmax(prev_residuals)/float(nbins)
+            # Base FWHM on stats.norm normalization
+            fwhm = 2*np.sqrt(2*np.log(2))/(np.sqrt(2*np.pi)*amplitude)
+            phase = np.argmax(prev_residuals)/float(nbins)
             trial_params.append(amplitude)
             trial_params.append(std_dev)
             trial_params.append(phase)
-            if 0:
+            if USE_MPFIT:
                 # params_dict is used by mpfit to get initial values and constraints on
                 # parameters
                 params_dict = []
@@ -80,6 +82,13 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
                                             "fixed"  : False,
                                             "limited": [False,False],
                                             "limits" : [0.0,0.0]})
+                    elif (ii - 1)%3 == 1:
+                        # This is the FWHM, and is allowed to vary between
+                        # 1/nbins and 1.0
+                        params_dict.append({"value"  : param,
+                                            "fixed"  : False,
+                                            "limited": [True, True],
+                                            "limits" : [1.0/nbins, 1.0]})
                     else:
                         # Limits are set assuming that our initial guesses were correct
                         # to within 25%...
@@ -95,7 +104,7 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
                     return [0, fit.get_resids(data)]
              
                 # Now fit
-                mpfit_out     = mpfit.mpfit(func, parinfo=params_dict, quiet=False)
+                mpfit_out     = mpfit.mpfit(func, parinfo=params_dict, quiet=True)
                 # Store the new best-fit parameters
                 new_params    = mpfit_out.params
             else:
