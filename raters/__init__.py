@@ -1,8 +1,6 @@
 registered_raters = ["duty_cycle", \
-                     "gaussian_width", \
-                     "gaussian_height", \
-                     "gaussian_phase", \
-                     "gaussian_significance", \
+                     "pulse_width", \
+                     "wiggle", \
                      "known_pulsar", \
                      "mains_rfi", \
                      "peak_over_rms", \
@@ -10,6 +8,10 @@ registered_raters = ["duty_cycle", \
                      "dm_comparison_std", \
                      "dm_comparison_chisqr", \
                      "dm_comparison_peak", \
+                     "gaussian_amplitude", \
+                     "gaussian_goodness", \
+                     "gaussian_fwhm", \
+                     "multigauss_number", \
                      "multigauss_goodness"]
 
 __all__ = registered_raters
