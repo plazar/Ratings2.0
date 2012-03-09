@@ -68,7 +68,7 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
             fwhm = 2*np.sqrt(2*np.log(2))/(np.sqrt(2*np.pi)*amplitude)
             phase = np.argmax(prev_residuals)/float(nbins)
             trial_params.append(amplitude)
-            trial_params.append(std_dev)
+            trial_params.append(fwhm)
             trial_params.append(phase)
             if USE_MPFIT:
                 # params_dict is used by mpfit to get initial values and constraints on

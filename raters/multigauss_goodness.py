@@ -1,4 +1,4 @@
-import numpy as np
+import utils
 import base
 from rating_classes import multigauss
 
@@ -15,12 +15,11 @@ class MultiGaussGoodnessOfFitRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        profile = cand.profile.copy()
-        profile /= np.sqrt(cand.pfd.varprof)
-        profile -= profile.mean()
-        nbins = len(profile)
+        profile = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
         mgauss = cand.multigaussfit
-        return mgauss.get_chisqr(profile)/mgauss.get_dof(nbins)
+        chi2 = mgauss.get_chisqr(profile)
+        dof = mgauss.get_dof(len(profile))
+        return chi2/dof
 
 Rater = MultiGaussGoodnessOfFitRater
 

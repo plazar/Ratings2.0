@@ -215,7 +215,7 @@ class MultiGaussComponent(object):
            
         """
         # Create an array for the Gaussian profile
-        gaussians = self.max*self.fwhm/2*np.sqrt(np.pi/np.log(2)) * \
+        gaussian = self.amp*self.fwhm/2*np.sqrt(np.pi/np.log(2)) * \
                         psr_utils.gaussian_profile(nbins,self.phs,self.fwhm)
         return gaussian
 

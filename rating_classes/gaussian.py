@@ -35,10 +35,8 @@ class SingleGaussianProfileClass(profile.ProfileClass):
             Output:
                 gaussfit: The corresponding fit. A MultiGaussFit object.
         """
-        data = cand.profile.copy()
-        data /= np.sqrt(cand.pfd.varprof)
-        data -= data.mean()
-
+        data = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
+        
         # Initialize some starting values
         nbins      = len(data)
         ngaussians = 0
@@ -68,7 +66,7 @@ class SingleGaussianProfileClass(profile.ProfileClass):
             fwhm = 2*np.sqrt(2*np.log(2))/(np.sqrt(2*np.pi)*amplitude)
             phase = np.argmax(prev_residuals)/float(nbins)
             trial_params.append(amplitude)
-            trial_params.append(std_dev)
+            trial_params.append(fwhm)
             trial_params.append(phase)
             if USE_MPFIT:
                 # params_dict is used by mpfit to get initial values and constraints on

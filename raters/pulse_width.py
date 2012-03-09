@@ -1,5 +1,5 @@
 import base
-from rating_classes import gaussian
+from rating_classes import multigauss
 
 import numpy as np
 import psr_utils
@@ -14,7 +14,7 @@ class PulseWidthRater(base.BaseRater):
                   "may not always be ideal!)."
     version = 1
 
-    rat_cls = gaussian.MultipleGaussianProfileClass()
+    rat_cls = multigauss.MultipleGaussianProfileClass()
 
     def _compute_rating(self, cand):
         """Return a rating for the candidate. The rating value is the
@@ -28,7 +28,7 @@ class PulseWidthRater(base.BaseRater):
                 value: The rating value.
         """
         pfd = cand.pfd
-        mgauss = cand.singlegaussfit
+        mgauss = cand.multigaussfit
         ncomp = len(mgauss.components)
         if not ncomp:
             raise utils.RatingError("Bad number of components for single " \

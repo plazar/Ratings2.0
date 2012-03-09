@@ -1,3 +1,4 @@
+import utils
 import base
 from rating_classes import gaussian
 
@@ -21,9 +22,9 @@ class GaussianGofRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        profile = cand.profile
+        profile = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
         sgauss = cand.singlegaussfit
-        chi2 = sgauss.get_chisqr()
+        chi2 = sgauss.get_chisqr(profile)
         dof = sgauss.get_dof(len(profile))
         return chi2/dof
 

@@ -144,6 +144,13 @@ class RatingIDCache(object):
         return id
 
 
+def get_scaled_profile(profile, varprof):
+    scaled = profile.copy()
+    scaled /= np.sqrt(varprof)
+    scaled -= scaled.mean()
+    return scaled
+
+
 def vonmises_coefficient(k,m):
     return scipy.special.ive(m,k)/scipy.special.ive(0,k)
 

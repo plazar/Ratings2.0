@@ -4,7 +4,7 @@ from rating_classes import gaussian
 class GaussianFWHMRater(base.BaseRater):
     short_name = "gaussfwhm"
     long_name = "Gaussian FWHM Rating"
-    description = "The full-width at half-maximum of a single-Gaussian "
+    description = "The full-width at half-maximum of a single-Gaussian " \
                   "fit to the best profile."
     version = 1
 
