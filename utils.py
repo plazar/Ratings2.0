@@ -2,7 +2,6 @@ import scipy.stats
 import scipy.special
 import numpy as np
 
-import database
 import dataproducts
 
 class RatingError(Exception):
@@ -26,6 +25,9 @@ class RatingIDCache(object):
             Output:
                 cache: The RatingIDCache object.
         """
+        # Put import here so testing on systems 
+        # without all prereqs doesn't fail.
+        import database 
         self.dbname = dbname
         self.idcache = {}
 
