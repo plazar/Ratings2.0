@@ -17,18 +17,25 @@ class SubbandPulseWindowStats(gaussian.SingleGaussianProfileClass, \
             Output:
                 subband_stats: The resulting PulseWindowStats object.
         """
-        sgauss = cand.gaussian
+        sgauss = cand.singlegaussfit
         fvph = cand.freq_vs_phase
 
         onpulse_phs = sgauss.get_onpulse_region()
         onpulse_bin = np.round(onpulse_phs*fvph.nbin).astype(int)
 
         onpulse_length = (onpulse_bin[1] - onpulse_bin[0]) % fvph.nbin
-        onpulse_indices = np.range(onpulse_bin[0], \
+        onpulse_indices = np.arange(onpulse_bin[0], \
                             onpulse_bin[0]+onpulse_length) % fvph.nbin
         onpulse_region = np.zeros(fvph.nbin, dtype=bool)
         onpulse_region[onpulse_indices] = True
         offpulse_region = np.bitwise_not(onpulse_region)
+
+        if np.sum(offpulse_region) < 3:
+            raise utils.RatingError("Off-pulse region is too small (%d < 3)" % \
+                        np.sum(offpulse_region))
+        if np.sum(onpulse_region) < 2:
+            raise utils.RatingError("On-pulse region is too small (%d < 2)" % \
+                        np.sum(onpulse_region))
 
         counts = 0
         counts_peak = 0
@@ -58,7 +65,7 @@ class SubbandPulseWindowStats(gaussian.SingleGaussianProfileClass, \
             # Calculate snrs
             onpulse = profile[onpulse_region] # Get on-pulse now so it is scaled
             snrs[ichan] = np.sum(onpulse)
-            peak_snrs[ichan] = np.meax(onpulse)
+            peak_snrs[ichan] = np.mean(onpulse)
             
             # Determine correlation coeff
             corr_coefs[ichan] = np.corrcoef(gaussprof, profile)[0][1]

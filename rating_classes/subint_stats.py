@@ -17,25 +17,19 @@ class SubintPulseWindowStats(gaussian.SingleGaussianProfileClass, \
             Output:
                 subint_stats: The resulting PulseWindowStats object.
         """
-        sgauss = cand.gaussian
+        sgauss = cand.singlegaussfit
         tvph = cand.time_vs_phase
 
         onpulse_phs = sgauss.get_onpulse_region()
+        print "On pulse (phase):", onpulse_phs
         onpulse_bin = np.round(onpulse_phs*tvph.nbin).astype(int)
-
+        print "On pulse (bin):", onpulse_phs*tvph.nbin
         onpulse_length = (onpulse_bin[1] - onpulse_bin[0]) % tvph.nbin
-        onpulse_indices = np.range(onpulse_bin[0], \
+        onpulse_indices = np.arange(onpulse_bin[0], \
                             onpulse_bin[0]+onpulse_length) % tvph.nbin
         onpulse_region = np.zeros(tvph.nbin, dtype=bool)
         onpulse_region[onpulse_indices] = True
         offpulse_region = np.bitwise_not(onpulse_region)
-
-        counts = 0
-        counts_peak = 0
-        snrs = []
-        peak_snrs = []
-        num_zapped_profs = 0
-        corr_coef_sum = 0
 
         zapped_profs = np.zeros(tvph.nsubint, dtype=bool)
         snrs = np.empty(tvph.nsubint)
@@ -58,7 +52,7 @@ class SubintPulseWindowStats(gaussian.SingleGaussianProfileClass, \
             # Calculate snrs
             onpulse = profile[onpulse_region] # Get on-pulse now so it is scaled
             snrs[isub] = np.sum(onpulse)
-            peak_snrs[isub] = np.meax(onpulse)
+            peak_snrs[isub] = np.mean(onpulse)
             
             # Determine correlation coeff
             corr_coefs[isub] = np.corrcoef(gaussprof, profile)[0][1]

@@ -246,11 +246,11 @@ class MultiGaussComponent(object):
 
         start_phase = self.phs - (self.fwhm*fudge_factor)/2.0
         end_phase = self.phs + (self.fwhm*fudge_factor)/2.0
-        
+       
         start_phase %= 1
         end_phase %= 1
 
-        return (start_phase, end_phase)
+        return np.array((start_phase, end_phase))
 
 
 class MultiGaussFit(object):
@@ -376,12 +376,12 @@ class PulseWindowStats(object):
         self.peak_snrs = peak_snrs
         self.corr_coefs = corr_coefs
 
-    def get_on_frac(self, snr_thresh):
+    def get_on_frac(self, snr_thresh=5.0):
         oncount = np.sum(self.snrs > snr_thresh)
         num_unzapped = np.sum(np.bitwise_not(self.snrs.mask))
         return oncount/float(num_unzapped)
 
-    def get_peak_on_frac(self, peak_snr_thresh):
+    def get_peak_on_frac(self, peak_snr_thresh=3.0):
         oncount = np.sum(self.peak_snrs > peak_snr_thresh)
         num_unzapped = np.sum(np.bitwise_not(self.peak_snrs.mask))
         return oncount/float(num_unzapped)
