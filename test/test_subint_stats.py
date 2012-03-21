@@ -52,29 +52,40 @@ def main():
     print "Peak SNR stddev: %g" % cand.subint_stats.get_peak_snr_stddev()
     print "Avg correlation coefficient: %g" % cand.subint_stats.get_avg_corrcoef()
     
-    sgauss = cand.singlegaussfit
+    mgauss = cand.multigaussfit
     tvph = cand.time_vs_phase
-    onpulse_phs = sgauss.get_onpulse_region()
-    onpulse_bin = np.round(onpulse_phs*tvph.nbin).astype(int)
+    onpulse_region = mgauss.get_onpulse_region(tvph.nbin)
+    offpulse_region = np.bitwise_not(onpulse_region)
+    m = np.ma.masked_array(onpulse_region, mask=offpulse_region)
+    onpulse_ranges = np.ma.notmasked_contiguous(m)
+    print onpulse_ranges
     prof = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
     imax = plt.axes([0.1,0.1,0.5,0.7])
     plt.imshow(scale2d(tvph.data), interpolation='nearest', \
             aspect='auto', origin='lower', cmap=matplotlib.cm.gist_yarg)
-    if onpulse_bin[0] < onpulse_bin[1]:
-        plt.axvspan(onpulse_bin[0], onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0)
-    else:
-        plt.axvspan(onpulse_bin[0], tvph.nbin, fc='g', alpha=0.2, lw=0)
-        plt.axvspan(-0.5, onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0)
+    for opr in onpulse_ranges:
+        onpulse_bin = (opr.start, opr.stop)
+        if onpulse_bin[0] < onpulse_bin[1]:
+            plt.axvspan(onpulse_bin[0], onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0)
+        else:
+            plt.axvspan(onpulse_bin[0], tvph.nbin, fc='g', alpha=0.2, lw=0)
+            plt.axvspan(-0.5, onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0)
         
 
     plt.axes([0.1,0.8,0.5,0.15], sharex=imax)
     plt.plot(prof, 'k-', label='Profile')
-    plt.plot(sgauss.make_gaussians(len(prof)), 'r--', label='Fit')
-    if onpulse_bin[0] < onpulse_bin[1]:
-        plt.axvspan(onpulse_bin[0], onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0, label='On-pulse')
-    else:
-        plt.axvspan(onpulse_bin[0], tvph.nbin, fc='g', alpha=0.2, lw=0, label='On-pulse')
-        plt.axvspan(-0.5, onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0, label='_nolabel_')
+    plt.plot(mgauss.make_gaussians(len(prof)), 'r--', label='Fit')
+    for ii, opr in enumerate(onpulse_ranges):
+        onpulse_bin = (opr.start, opr.stop)
+        if ii == 0:
+            lbl = 'On-pulse'
+        else:
+            lbl = '_nolabel_'
+        if onpulse_bin[0] < onpulse_bin[1]:
+            plt.axvspan(onpulse_bin[0], onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0, label=lbl)
+        else:
+            plt.axvspan(onpulse_bin[0], tvph.nbin, fc='g', alpha=0.2, lw=0, label=lbl)
+            plt.axvspan(-0.5, onpulse_bin[1]+1, fc='g', alpha=0.2, lw=0, label='_nolabel_')
     plt.legend(loc='best', prop=dict(size='xx-small'))
     
     plt.axes([0.6,0.1,0.15,0.7], sharey=imax)
