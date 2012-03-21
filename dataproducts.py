@@ -1,3 +1,5 @@
+import types
+
 import numpy as np
 import scipy.stats
 
@@ -219,6 +221,37 @@ class MultiGaussComponent(object):
                         psr_utils.gaussian_profile(nbins,self.phs,self.fwhm)
         return gaussian
 
+    def get_onpulse_region(self):
+        """Return a tuple of phases that represent the on-pulse window.
+
+            Inputs:
+                None
+
+            Output:
+                onpulse: A tuple of phases, between which are the 
+                    on-pulse region.
+        """
+        # Determine fudge factor depending on width
+        if self.fwhm < 0.1:
+            fudge_factor = 4.0
+        elif self.fwhm < 0.2:
+            fudge_factor = 2.0
+        elif self.fwhm < 0.4:
+            fudge_factor = 1.5
+        else:
+            fudge_factor = 1.5
+        
+        if self.fwhm*fudge_factor > 1.0:
+            raise RatingError("Fudge factored FWHM is larger than 1.0 in phase")
+
+        start_phase = self.phs - (self.fwhm*fudge_factor)/2.0
+        end_phase = self.phs + (self.fwhm*fudge_factor)/2.0
+        
+        start_phase %= 1
+        end_phase %= 1
+
+        return (start_phase, end_phase)
+
 
 class MultiGaussFit(object):
     def __init__(self, offset=0.0, components=[]):
@@ -315,3 +348,51 @@ class MultiGaussFit(object):
         plt.setp(ax.xaxis.get_ticklabels(), visible=False)
         plt.show()
 
+    def get_onpulse_region(self):
+        """Return a tuple of phases that represent the on-pulse window.
+
+            Inputs:
+                None
+
+            Output:
+                onpulse: A tuple of phases, between which are the 
+                    on-pulse region.
+        """
+        if len(self.components) > 1:
+            raise ValueError("On-pulse region is not defined for multi-gauss fits." \
+                                "(Num. components: %d" % len(self.components))
+        elif len(self.components) == 0:
+            raise RatingError("No gaussian component, so no on-pulse region.")
+        else:
+            return self.components[0].get_onpulse_region()
+
+
+class PulseWindowStats(object):
+    def __init__(self, snrs, peak_snrs, corr_coefs):
+        """Collect on-pulse vs. off-pulse stats for the given 2D
+            data and return an object storing this information.
+        """
+        self.snrs = snrs
+        self.peak_snrs = peak_snrs
+        self.corr_coefs = corr_coefs
+
+    def get_on_frac(self, snr_thresh):
+        oncount = np.sum(self.snrs > snr_thresh)
+        num_unzapped = np.sum(np.bitwise_not(self.snrs.mask))
+        return oncount/float(num_unzapped)
+
+    def get_peak_on_frac(self, peak_snr_thresh):
+        oncount = np.sum(self.peak_snrs > peak_snr_thresh)
+        num_unzapped = np.sum(np.bitwise_not(self.peak_snrs.mask))
+        return oncount/float(num_unzapped)
+
+    def get_snr_stddev(self):
+        return self.snrs.std()
+
+    def get_peak_snr_stddev(self):
+        return self.peak_snrs.std()
+
+    def get_avg_corrcoef(self):
+        corrcoef_sum = np.sum(self.corr_coefs)
+        num_unzapped = np.sum(np.bitwise_not(self.corr_coefs.mask))
+        return corrcoef_sum/float(num_unzapped)
