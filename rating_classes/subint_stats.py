@@ -1,10 +1,10 @@
 import numpy as np
 
 import dataproducts
-import gaussian
+import multigauss
 import time_vs_phase
 
-class SubintPulseWindowStats(gaussian.SingleGaussianProfileClass, \
+class SubintPulseWindowStats(multigauss.MultipleGaussianProfileClass, \
                                     time_vs_phase.TimeVsPhaseClass):
     data_key = "subint_stats"
 
@@ -17,25 +17,17 @@ class SubintPulseWindowStats(gaussian.SingleGaussianProfileClass, \
             Output:
                 subint_stats: The resulting PulseWindowStats object.
         """
-        sgauss = cand.singlegaussfit
+        mgauss = cand.multigaussfit
         tvph = cand.time_vs_phase
 
-        onpulse_phs = sgauss.get_onpulse_region()
-        print "On pulse (phase):", onpulse_phs
-        onpulse_bin = np.round(onpulse_phs*tvph.nbin).astype(int)
-        print "On pulse (bin):", onpulse_phs*tvph.nbin
-        onpulse_length = (onpulse_bin[1] - onpulse_bin[0]) % tvph.nbin
-        onpulse_indices = np.arange(onpulse_bin[0], \
-                            onpulse_bin[0]+onpulse_length) % tvph.nbin
-        onpulse_region = np.zeros(tvph.nbin, dtype=bool)
-        onpulse_region[onpulse_indices] = True
+        onpulse_region = mgauss.get_onpulse_region(tvph.nbin)
         offpulse_region = np.bitwise_not(onpulse_region)
 
         zapped_profs = np.zeros(tvph.nsubint, dtype=bool)
         snrs = np.empty(tvph.nsubint)
         peak_snrs = np.empty(tvph.nsubint)
         corr_coefs = np.empty(tvph.nsubint)
-        gaussprof = sgauss.make_gaussians(tvph.nbin)
+        gaussprof = mgauss.make_gaussians(tvph.nbin)
         for isub in np.arange(tvph.nsubint):
             profile = tvph.data[isub,:].copy()
             offpulse = profile[offpulse_region]

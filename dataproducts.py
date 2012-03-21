@@ -280,7 +280,13 @@ class MultiGaussComponent(object):
         start_phase %= 1
         end_phase %= 1
 
-        return np.array((start_phase, end_phase))
+        start_bin = int(start_phase*nbins+0.5) # Round to nearest integer
+        end_bin = int(end_phase*nbins+0.5) # Round to nearest integer
+        onpulse_length = (end_bin - start_bin) % nbins
+        onpulse_indices = np.arange(start_bin, start_bin+onpulse_length) % nbins
+        onpulse_region = np.zeros(nbins, dtype=bool)
+        onpulse_region[onpulse_indices] = True
+        return onpulse_region
 
 
 class MultiGaussFit(object):
@@ -378,23 +384,20 @@ class MultiGaussFit(object):
         plt.setp(ax.xaxis.get_ticklabels(), visible=False)
         plt.show()
 
-    def get_onpulse_region(self):
+    def get_onpulse_region(self, nbins):
         """Return a tuple of phases that represent the on-pulse window.
 
             Inputs:
-                None
+                nbins: Number of phase bins.
 
             Output:
                 onpulse: A tuple of phases, between which are the 
                     on-pulse region.
         """
-        if len(self.components) > 1:
-            raise ValueError("On-pulse region is not defined for multi-gauss fits." \
-                                "(Num. components: %d" % len(self.components))
-        elif len(self.components) == 0:
-            raise RatingError("No gaussian component, so no on-pulse region.")
-        else:
-            return self.components[0].get_onpulse_region()
+        onpulse_region = np.zeros(nbins, dtype=bool)
+        for comp in self.components:
+            onpulse_region |= comp.get_onpulse_region(nbins)
+        return onpulse_region
 
 
 class PulseWindowStats(object):
