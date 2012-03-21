@@ -82,6 +82,21 @@ class TimeVsPhase(object):
         self.curr_p, self.curr_pd, self.curr_pdd = p, pd, pdd
         self.pdelays_bins += new_pdelays_bins
 
+    def get_partially_integrated(self, nsubint):
+        """Partially integrate data so it has 'nsubint'
+            rows.
+
+            Input:
+                nsubint: New number of subints.
+
+            Output:
+                data: A 2D array.
+        """
+        assert (self.nsubint % nsubband) == 0
+        newdata = np.array([np.sum(sub, axis=0) for sub in \
+                                    np.vsplit(self.data, nsubint)])
+        return newdata
+
     def get_profile(self):
         prof = self.data.sum(axis=0).squeeze()
         return prof
@@ -131,6 +146,21 @@ class FreqVsPhase(object):
     def get_profile(self):
         prof = self.data.sum(axis=0).squeeze()
         return prof
+
+    def get_subbanded(self, nsubband):
+        """Partially integrate data so it has 'nsubband'
+            rows.
+
+            Input:
+                nsubband: New number of subband.
+
+            Output:
+                data: A 2D array.
+        """
+        assert (self.nchan % nsubband) == 0
+        newdata = np.array([np.sum(sub, axis=0) for sub in \
+                                    np.vsplit(self.data, nsubband)])
+        return newdata
 
 
 class GaussianFit(object):
@@ -221,11 +251,11 @@ class MultiGaussComponent(object):
                         psr_utils.gaussian_profile(nbins,self.phs,self.fwhm)
         return gaussian
 
-    def get_onpulse_region(self):
+    def get_onpulse_region(self, nbins):
         """Return a tuple of phases that represent the on-pulse window.
 
             Inputs:
-                None
+                nbins: Number of phase bins.
 
             Output:
                 onpulse: A tuple of phases, between which are the 
