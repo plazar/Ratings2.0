@@ -272,13 +272,5 @@ if __name__ == '__main__':
                         help="The number of rater processes to use. " \
                                 "Each thread rates a separate candidate. " \
                                 "(Default: use one rater thread.)")
-    parser.add_argument('--no-write-to-file', dest='write_to_file', \
-                        default=True, action='store_false', \
-                        help="Do not write out ratings to file. " \
-                                "(Default: Write out file.)")
-    parser.add_argument('--no-write-to-screen', dest='write_to_screen', \
-                        default=True, action='store_false', \
-                        help="Do not write out ratings to screen. " \
-                                "(Default: Write ratings to screen.)")
     args = parser.parse_args()
     main()
