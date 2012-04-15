@@ -89,8 +89,6 @@ class Database:
             raise DatabaseConnectionError(msg)
 
     def execute(self, query, *args, **kwargs):
-        if debug.COMMONDB:
-            print query
         try:
             self.cursor.execute(query.encode('ascii'), *args, **kwargs)
         except Exception, e:
