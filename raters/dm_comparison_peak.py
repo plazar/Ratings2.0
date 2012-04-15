@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+
 import base
 from rating_classes import freq_vs_phase
 
