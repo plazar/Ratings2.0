@@ -8,8 +8,8 @@ class RatingError(Exception):
     pass
 
 
-class RatingIDCache(object):
-    """A cache object to keep track of rating ID numbers.
+class RatingInstanceIDCache(object):
+    """A cache object to keep track of rating instance ID numbers.
         This object will query the database for ID numbers if
         they are not already cached. If not ID number is found
         in the database the cache obeject will add an entry
@@ -72,7 +72,7 @@ class RatingIDCache(object):
                    "FROM pdm_rating_instance AS ri WITH(NOLOCK) " \
                    "LEFT JOIN pdm_rating_type AS rt WITH(NOLOCK) " \
                         "ON rt.pdm_rating_type_id=ri.pdm_rating_type_id " \
-                   "WHERE rt.name=? AND ri.version>=?" \
+                   "WHERE rt.name=? AND ri.version>=? " \
                    "ORDER BY ri.version DESC", (name, version))
         row = db.cursor.fetchone()
         db.close()
