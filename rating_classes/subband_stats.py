@@ -17,37 +17,16 @@ class SubbandPulseWindowStats(gaussian.SingleGaussianProfileClass, \
             Output:
                 subband_stats: The resulting PulseWindowStats object.
         """
-        sgauss = cand.singlegaussfit
+        mgauss = cand.multigaussfit
         fvph = cand.freq_vs_phase
 
-        onpulse_phs = sgauss.get_onpulse_region()
-        onpulse_bin = np.round(onpulse_phs*fvph.nbin).astype(int)
-
-        onpulse_length = (onpulse_bin[1] - onpulse_bin[0]) % fvph.nbin
-        onpulse_indices = np.arange(onpulse_bin[0], \
-                            onpulse_bin[0]+onpulse_length) % fvph.nbin
-        onpulse_region = np.zeros(fvph.nbin, dtype=bool)
-        onpulse_region[onpulse_indices] = True
+        onpulse_phs = mgauss.get_onpulse_region(fvph.nbin)
         offpulse_region = np.bitwise_not(onpulse_region)
 
-        if np.sum(offpulse_region) < 3:
-            raise utils.RatingError("Off-pulse region is too small (%d < 3)" % \
-                        np.sum(offpulse_region))
-        if np.sum(onpulse_region) < 2:
-            raise utils.RatingError("On-pulse region is too small (%d < 2)" % \
-                        np.sum(onpulse_region))
-
-        counts = 0
-        counts_peak = 0
-        snrs = []
-        peak_snrs = []
-        num_zapped_profs = 0
-        corr_coef_sum = 0
-
-        zapped_profs = np.zeros(fvph.nsubint, dtype=bool)
-        snrs = np.empty(fvph.nsubint)
-        peak_snrs = np.empty(fvph.nsubint)
-        corr_coefs = np.empty(fvph.nsubint)
+        zapped_profs = np.zeros(fvph.nchan, dtype=bool)
+        snrs = np.empty(fvph.nchan)
+        peak_snrs = np.empty(fvph.nchan)
+        corr_coefs = np.empty(fvph.nchan)
         gaussprof = sgauss.make_gaussians(fvph.nbin)
         for ichan in np.arange(fvph.nchan):
             profile = fvph.data[isub,:].copy()
