@@ -40,8 +40,6 @@ class DMComparisonChiSquareRater(base.BaseRater):
         prof_bestdm = fvph.get_profile()
         chisqr_bestdm = presto.chisqr(prof_bestdm, pfd.proflen, prof_avg, prof_var)
 
-        print "DEBUG: chisqr_dm0, chisqr_bestdm:", chisqr_dm0, chisqr_bestdm
-        
         return chisqr_dm0/chisqr_bestdm
     
 
