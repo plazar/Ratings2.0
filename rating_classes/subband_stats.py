@@ -1,10 +1,10 @@
 import numpy as np
 
 import dataproducts
-import gaussian
+import multigauss
 import freq_vs_phase
 
-class SubbandPulseWindowStats(gaussian.SingleGaussianProfileClass, \
+class SubbandPulseWindowStats(multigauss.MultipleGaussianProfileClass, \
                                     freq_vs_phase.FreqVsPhaseClass):
     data_key = "subband_stats"
 
@@ -20,16 +20,16 @@ class SubbandPulseWindowStats(gaussian.SingleGaussianProfileClass, \
         mgauss = cand.multigaussfit
         fvph = cand.freq_vs_phase
 
-        onpulse_phs = mgauss.get_onpulse_region(fvph.nbin)
+        onpulse_region = mgauss.get_onpulse_region(fvph.nbin)
         offpulse_region = np.bitwise_not(onpulse_region)
 
         zapped_profs = np.zeros(fvph.nchan, dtype=bool)
         snrs = np.empty(fvph.nchan)
         peak_snrs = np.empty(fvph.nchan)
         corr_coefs = np.empty(fvph.nchan)
-        gaussprof = sgauss.make_gaussians(fvph.nbin)
+        gaussprof = mgauss.make_gaussians(fvph.nbin)
         for ichan in np.arange(fvph.nchan):
-            profile = fvph.data[isub,:].copy()
+            profile = fvph.data[ichan,:].copy()
             offpulse = profile[offpulse_region]
             
             stddev = np.std(offpulse)
