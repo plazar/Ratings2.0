@@ -11,6 +11,8 @@ registered_raters = ["duty_cycle", \
                      "gaussian_amplitude", \
                      "gaussian_goodness", \
                      "gaussian_fwhm", \
+                     "frac_good_subbands", \
+                     "frac_good_intervals", \
                      "multigauss_number", \
                      "multigauss_goodness"]
 
