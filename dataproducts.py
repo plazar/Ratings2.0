@@ -394,6 +394,9 @@ class MultiGaussFit(object):
                 onpulse: A tuple of phases, between which are the 
                     on-pulse region.
         """
+        if not self.components:
+            raise utils.RatingError("Multi-Gauss fit has no components " \
+                                    "(i.e. no on-pulse region)")
         onpulse_region = np.zeros(nbins, dtype=bool)
         for comp in self.components:
             onpulse_region |= comp.get_onpulse_region(nbins)
