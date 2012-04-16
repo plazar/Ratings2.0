@@ -32,7 +32,6 @@ class WiggleRater(base.BaseRater):
         tvph = cand.time_vs_phase
         pfd = cand.pfd
 
-        
         bestprof = tvph.get_profile()
         new_template = np.zeros_like(bestprof)
         bin_offsets = np.empty(pfd.npart)
