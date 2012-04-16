@@ -1,5 +1,8 @@
+import sys
+
 import rating_value
 import rating_classes
+import utils
 
 class BaseRater(object):
     short_name = NotImplemented
@@ -33,10 +36,17 @@ class BaseRater(object):
             Output:
                 ratval: A RatingValue object.
         """
-        self.rat_cls.add_data(cand)
-        value = self._compute_rating(cand)
+        try:
+            self.rat_cls.add_data(cand)
+            value = self._compute_rating(cand)
+        except utils.RatingError, e:
+            sys.stderr.write("%s -- RatingError encountered when rating " \
+                             "candidate (%s): %s\n" % \
+                             (self.__class__.__name__, cand.pfdfn, str(e)))
+            value = None
+        
         ratval = rating_value.RatingValue(self.long_name, self.version, \
-                                    self.description, value)
+                                        self.description, value)
         return ratval
 
     def _compute_rating(self, cand):
