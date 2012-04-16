@@ -12,15 +12,19 @@ class RatingValue(object):
         self.version = version
         self.description = description
         self.value = value
+        if self.value is None:
+            self.valuestr = "%s" % self.value
+        else:
+            self.valuestr = "%.12g" % self.value
 
     def __str__(self):
         text  = "Rating name (version): %s (v%d)\n" % (self.name, self.version)
         text += "Description: %s\n" % self.description
-        text += "Value: %.12g" % self.value
+        text += "Value: %s" % self.valuestr
         return text
 
     def get_short_string(self):
-        return "%s (v%d): %g" % (self.name, self.version, self.value)
+        return "%s (v%d): %s" % (self.name, self.version, self.valuestr)
 
 
 def parse_string(string):
@@ -37,8 +41,12 @@ def parse_string(string):
     ratvals = []
     for match in matches:
         grps = match.groupdict()
+        if grps['value'] == "None":
+            value = None
+        else:
+            value = float(grps['value'])
         ratvals.append(RatingValue(grps['name'], int(grps['version']), \
-                                    grps['descr'], float(grps['value'])))
+                                    grps['descr'], value))
     return ratvals
 
 
