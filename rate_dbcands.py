@@ -14,7 +14,9 @@ import os.path
 import candidate
 import raters
 import database
+import utils
 
+#DBNAME = "common2"
 DBNAME = "common-copy"
 
 def rate_pfd(pfdfn, rater_instances):
@@ -66,6 +68,7 @@ def get_beams_to_rate(rat_inst_id):
             header_ids: Header ID values for beams that have candidates
                 to be rated by this rating instance.
     """
+    return [63614] # For texting on commom-copy
     db = database.Database(DBNAME)
 
     # get header IDs of candidates that are missing this rating
@@ -83,9 +86,46 @@ def get_beams_to_rate(rat_inst_id):
     return header_ids
    
 
-def get_pfds(header_id):
+def get_pfds_from_db(header_id):
     """Given a header ID value download the associated candidates'
-        pfds to a temporary directory. Return the path to the temp dir.
+        pfds from the database to a temporary directory. 
+        Return the path to the temp dir.
+
+        Input:
+            header_id: The header ID value to download pfds for.
+
+        Output:
+            tempdir: The temporary directory containing the pfds.
+            fn_mapping: A dictionary mapping pdm_cand_id to pfd filename.
+    """
+    db = database.Database()
+    # Get paths/filenames for uploaded pfds
+    query = "SELECT c.pdm_cand_id, cpl.filename, cpl.filedata " \
+            "FROM PDM_Candidate_plots AS cpl WITH(NOLOCK) " \
+            "LEFT JOIN pdm_candidates AS c WITH(NOLOCK) " \
+                "ON c.pdm_cand_id=cpl.pdm_cand_id " \
+            "WHERE c.header_id=?"
+    db.execute(query, header_id)
+    
+    # Create temporary directory
+    tempdir = tempfile.mkdtemp(suffix='ratings2')
+    
+    fn_mapping = {}
+    pfds_to_get = []
+    for cand_id, fn, data in db.fetchall():
+        fn_mapping[cand_id] = fn
+        # Download the file
+        f = open(os.path.join(tempdir, fn), 'w')
+        f.write(data)
+        f.close()
+
+    return tempdir, fn_mapping
+
+
+def get_pfds_from_ftp(header_id):
+    """Given a header ID value download the associated candidates'
+        pfds from the FTP server to a temporary directory. 
+        Return the path to the temp dir.
 
         Input:
             header_id: The header ID value to download pfds for.
@@ -102,37 +142,46 @@ def get_pfds(header_id):
                 "ON c.pdm_cand_id=cbf.pdm_cand_id " \
             "WHERE c.header_id=?"
     db.execute(query, header_id)
-    rows = db.fetchall()
-    fn_mapping = {}
-    pfds_to_get = []
-    for row in rows:
-        fn_mapping[row[0]] = row[2]
-        pfds_to_get.append(os.path.join(row[1], row[2]))
     
     # Create temporary directory
     tempdir = tempfile.mkdtemp(suffix='ratings2')
 
+    fn_mapping = {}
+    pfds_to_get = []
+    for cand_id, ftp_path, fn in db.fetchall():
+        fn_mapping[cand_id] = fn
+        pfds_to_get.append(os.path.join(ftp_path, fn))
+    
     # Download files
     download_many(pfds_to_get, tempdir)
 
     return tempdir, fn_mapping
 
 
+def print_raters_list():
+    print "Number of raters registered: %d" % len(raters.registered_raters)
+    for rater_name in raters.registered_raters:
+        rater_module = getattr(raters, rater_name)
+        rater = rater_module.Rater()
+        print "'%s': %s (v%d)" % (rater_name, rater.long_name, rater.version)
+        if args.verbosity:
+            print ""
+            for line in rater.description.split('\n'):
+                print textwrap.fill(line, width=70)
+            print "-"*25
+
+
 def main():
     if args.num_procs > 1:
         warning.warn("Multithreading not implemnted (%d threads requested)" % \
                             args.num_procs)
+    
+    if not args.raters:
+        print "No raters are loaded."
+        args.list_raters = True
+
     if args.list_raters:
-        print "Number of raters registered: %d" % len(raters.registered_raters)
-        for rater_name in raters.registered_raters:
-            rater_module = getattr(raters, rater_name)
-            rater = rater_module.Rater()
-            print "%s (v%d)" % (rater.long_name, rater.version)
-            if args.verbosity:
-                print ""
-                for line in rater.description.split('\n'):
-                    print textwrap.fill(line, width=70)
-                print "-"*25
+        print_raters_list()
         sys.exit(0)
 
     rat_inst_id_cache = utils.RatingInstanceIDCache(DBNAME)
@@ -141,9 +190,11 @@ def main():
         rater_module = getattr(raters, rater_name)
         rater = rater_module.Rater()
         loaded_raters[(rater.long_name, rater.version)] = rater
-        
+  
+    db = database.Database()
     for rater in loaded_raters.values():
         rating_instance_id = rat_inst_id_cache.get_id(rater.long_name, \
+                                                      rater.version, \
                                                       rater.description)
         header_ids = get_beams_to_rate(rating_instance_id)
         for header_id in header_ids:
@@ -151,7 +202,7 @@ def main():
             # are not computed
             query = "SELECT c.pdm_cand_id, " \
                         "rt.name, " \
-                        "ri.version, " \
+                        "ri.version " \
                     "FROM pdm_candidates AS c WITH(NOLOCK) " \
                     "CROSS JOIN (SELECT rt.pdm_rating_type_id, " \
                                     "MAX(ri.pdm_rating_instance_id) " \
@@ -177,12 +228,16 @@ def main():
                                     "IDs were selected.)")
 
             # Get pfds for this header_id
-            tmpdir, fn_mapping = get_pfds(header_id)
+            if DBNAME == 'common2':
+                tmpdir, fn_mapping = get_pfds_from_ftp(header_id)
+            else:
+                tmpdir, fn_mapping = get_pfds_from_db(header_id)
 
+            rated_cands = []
             # Rate pfds for this header_id
             for cand_id, pfd_fn in fn_mapping.iteritems():
                 raters_to_use = [loaded_raters[(x[1], x[2])] for x in missing_ratings \
-                                    if x[0]==cand_id]
+                                    if x[0]==cand_id and (x[1], x[2]) in loaded_raters]
                 rated_cands.append(rate_pfd(os.path.join(tmpdir, pfd_fn), raters_to_use))
 
             # Upload rating values
@@ -191,6 +246,7 @@ def main():
                 
             # Remove the temporary directory containing pfd files
             shutil.rmtree(tmpdir)
+    db.close()
 
 
 class RemoveAllRatersAction(argparse.Action):
@@ -236,9 +292,6 @@ class AddOneRaterAction(argparse.Action):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Rate PFD files.")
-    parser.add_argument('infiles', metavar="INFILES", \
-                         nargs='+', type=str, \
-                         help="PRESTO *.pfd files to rate.")
     parser.add_argument('-v', '--more-verbose', dest='verbosity', \
                          default=0, action='count', \
                          help="Turn up verbosity by one notch. " \
