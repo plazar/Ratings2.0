@@ -27,6 +27,7 @@ class RatingInstanceIDCache(object):
         """
         # Put import here so testing on systems 
         # without all prereqs doesn't fail.
+        global database
         import database 
         self.dbname = dbname
         self.idcache = {}
@@ -117,7 +118,7 @@ class RatingInstanceIDCache(object):
                         "VALUES (?, ?)", (name, description))
             db.execute("SELECT pdm_rating_type_id " \
                         "FROM pdm_rating_type " \
-                        "WHERE name=?" % (name,))
+                        "WHERE name=?", name)
             type_id = db.cursor.fetchone()[0]
 
         # Check for rating instance
