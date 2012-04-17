@@ -158,19 +158,6 @@ def get_pfds_from_ftp(header_id):
     return tempdir, fn_mapping
 
 
-def print_raters_list():
-    print "Number of raters registered: %d" % len(raters.registered_raters)
-    for rater_name in raters.registered_raters:
-        rater_module = getattr(raters, rater_name)
-        rater = rater_module.Rater()
-        print "'%s': %s (v%d)" % (rater_name, rater.long_name, rater.version)
-        if args.verbosity:
-            print ""
-            for line in rater.description.split('\n'):
-                print textwrap.fill(line, width=70)
-            print "-"*25
-
-
 def main():
     if args.num_procs > 1:
         warning.warn("Multithreading not implemnted (%d threads requested)" % \
@@ -181,7 +168,7 @@ def main():
         args.list_raters = True
 
     if args.list_raters:
-        print_raters_list()
+        utils.print_raters_list(args.verbosity)
         sys.exit(0)
 
     rat_inst_id_cache = utils.RatingInstanceIDCache(DBNAME)

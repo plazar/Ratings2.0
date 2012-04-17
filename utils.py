@@ -181,3 +181,27 @@ def multigaussfit_from_paramlist(params):
         comps.append(dataproducts.MultiGaussComponent(amp, std, phs))
     fit = dataproducts.MultiGaussFit(offset=params[0], components=comps)
     return fit
+
+
+def print_raters_list(verbosity=0):
+    """Print the list of imported raters to stdout.
+        
+        Input:
+            verbosity: If True, print description of raters.
+                (Default: Don't be verbose.)
+
+        Outputs:
+            None
+    """
+    import textwrap
+    import raters
+    print "Number of raters registered: %d" % len(raters.registered_raters)
+    for rater_name in raters.registered_raters:
+        rater_module = getattr(raters, rater_name)
+        rater = rater_module.Rater()
+        print "'%s': %s (v%d)" % (rater_name, rater.long_name, rater.version)
+        if verbosity:
+            print ""
+            for line in rater.description.split('\n'):
+                print textwrap.fill(line, width=70)
+            print "-"*25

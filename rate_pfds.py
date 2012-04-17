@@ -8,7 +8,7 @@ import textwrap
 
 import candidate
 import raters
-
+import utils
 
 def rate_pfd(pfdfn, rater_instances):
     """Given the name of a *.pfd file and a list of Rater instances
@@ -31,17 +31,12 @@ def rate_pfd(pfdfn, rater_instances):
 
 
 def main():
+    if not args.raters:
+        print "No raters are loaded."
+        args.list_raters = True
+
     if args.list_raters:
-        print "Number of raters registered: %d" % len(raters.registered_raters)
-        for rater_name in raters.registered_raters:
-            rater_module = getattr(raters, rater_name)
-            rater = rater_module.Rater()
-            print "%s (v%d)" % (rater.long_name, rater.version)
-            if args.verbosity:
-                print ""
-                for line in rater.description.split('\n'):
-                    print textwrap.fill(line, width=70)
-                print "-"*25
+        utils.print_raters_list(args.verbosity)
         sys.exit(0)
 
     rater_instances = []
