@@ -225,11 +225,26 @@ def main():
             for cand_id, pfd_fn in fn_mapping.iteritems():
                 raters_to_use = [loaded_raters[(x[1], x[2])] for x in missing_ratings \
                                     if x[0]==cand_id and (x[1], x[2]) in loaded_raters]
-                rated_cands.append(rate_pfd(os.path.join(tmpdir, pfd_fn), raters_to_use))
+                cand = rate_pfd(os.path.join(tmpdir, pfd_fn), raters_to_use)
+                
+                # Add candidate ID number to facilitate uploading
+                cand.id = cand_id
+                rated_cands.append(cand)
 
             # Upload rating values
+            query_args = []
             for cand in rated_cands:
-                print cand.get_ratings_overview()
+                print cand, cand.id
+                for ratval in cand.rating_values:
+                    query_args.append((ratval.value, cand.id, \
+                                rat_inst_id_cache.get_id(ratval.name, \
+                                                        ratval.version, \
+                                                        ratval.description)))
+            if query_args:
+                query = "INSERT INTO pdm_rating " \
+                        "(value, pdm_cand_id, pdm_rating_instance_id, date) " \
+                        "VALUES (?, ?, ?, GETDATE())"
+                db.executemany(query, query_args)
                 
             # Remove the temporary directory containing pfd files
             shutil.rmtree(tmpdir)
