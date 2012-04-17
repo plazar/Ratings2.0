@@ -97,6 +97,15 @@ class Database:
             else:
                 raise 
 
+    def executemany(self, query, *args, **kwargs):
+        try:
+            self.cursor.executemany(query.encode('ascii'), *args, **kwargs)
+        except Exception, e:
+            if "has been chosen as the deadlock victim. Rerun the transaction." in str(e):
+                raise DatabaseDeadlockError(e)
+            else:
+                raise 
+
     def commit(self):
         self.conn.commit()
   
