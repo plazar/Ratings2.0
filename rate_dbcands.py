@@ -15,9 +15,10 @@ import candidate
 import raters
 import database
 import utils
+import config
 
-#DBNAME = "common2"
-DBNAME = "common-copy"
+DBNAME = "common2"
+#DBNAME = "common-copy"
 
 def rate_pfd(pfdfn, rater_instances):
     """Given the name of a *.pfd file and a list of Rater instances
@@ -53,7 +54,8 @@ def download_many(ftpfns, outdir):
     lftp_cmd = '"get -e -O %s %s"' % (outdir, " ".join(ftpfns))
     cmd = "lftp -c 'open -e %s -u %s,%s -p 31001 arecibo.tc.cornell.edu'" % \
              (lftp_cmd, config.ftp_username, config.ftp_password)
-    subprocess.call(cmd, stdout=open(os.devnull), shell=True)
+    if subprocess.call(cmd, stdout=open(os.devnull), shell=True) != 0:
+        raise ValueError("FTPing files failed (%s)" % cmd)
 
 
 def get_beams_to_rate(rat_inst_id):
@@ -68,7 +70,6 @@ def get_beams_to_rate(rat_inst_id):
             header_ids: Header ID values for beams that have candidates
                 to be rated by this rating instance.
     """
-    return [63614] # For texting on commom-copy
     db = database.Database(DBNAME)
 
     # get header IDs of candidates that are missing this rating
@@ -98,7 +99,7 @@ def get_pfds_from_db(header_id):
             tempdir: The temporary directory containing the pfds.
             fn_mapping: A dictionary mapping pdm_cand_id to pfd filename.
     """
-    db = database.Database()
+    db = database.Database(DBNAME)
     # Get paths/filenames for uploaded pfds
     query = "SELECT c.pdm_cand_id, cpl.filename, cpl.filedata " \
             "FROM PDM_Candidate_plots AS cpl WITH(NOLOCK) " \
@@ -109,15 +110,19 @@ def get_pfds_from_db(header_id):
     
     # Create temporary directory
     tempdir = tempfile.mkdtemp(suffix='ratings2')
-    
-    fn_mapping = {}
-    pfds_to_get = []
-    for cand_id, fn, data in db.fetchall():
-        fn_mapping[cand_id] = fn
-        # Download the file
-        f = open(os.path.join(tempdir, fn), 'w')
-        f.write(data)
-        f.close()
+   
+    try:
+        fn_mapping = {}
+        pfds_to_get = []
+        for cand_id, fn, data in db.fetchall():
+            fn_mapping[cand_id] = fn
+            # Download the file
+            f = open(os.path.join(tempdir, fn), 'w')
+            f.write(data)
+            f.close()
+    except:
+        shutil.rmtree(tempdir)
+        raise
 
     return tempdir, fn_mapping
 
@@ -134,10 +139,12 @@ def get_pfds_from_ftp(header_id):
             tempdir: The temporary directory containing the pfds.
             fn_mapping: A dictionary mapping pdm_cand_id to pfd filename.
     """
-    db = database.Database()
+    db = database.Database(DBNAME)
     # Get paths/filenames for uploaded pfds
-    query = "SELECT pdm_cand_id, file_location, filename " \
-            "FROM PDM_Candidate_Binaries_Filesystem AS cbf WITH(NOLOCK) " \
+    query = "SELECT cbf.pdm_cand_id, " \
+                "cbf.file_location, " \
+                "cbf.filename " \
+            "FROM pdm_candidate_binaries_filesystem AS cbf WITH(NOLOCK) " \
             "LEFT JOIN pdm_candidates AS c WITH(NOLOCK) " \
                 "ON c.pdm_cand_id=cbf.pdm_cand_id " \
             "WHERE c.header_id=?"
@@ -145,15 +152,19 @@ def get_pfds_from_ftp(header_id):
     
     # Create temporary directory
     tempdir = tempfile.mkdtemp(suffix='ratings2')
-
-    fn_mapping = {}
-    pfds_to_get = []
-    for cand_id, ftp_path, fn in db.fetchall():
-        fn_mapping[cand_id] = fn
-        pfds_to_get.append(os.path.join(ftp_path, fn))
     
-    # Download files
-    download_many(pfds_to_get, tempdir)
+    try:
+        fn_mapping = {}
+        pfds_to_get = []
+        for cand_id, ftp_path, fn in db.fetchall():
+            fn_mapping[cand_id] = fn
+            pfds_to_get.append(os.path.join(ftp_path, fn))
+        
+        # Download files
+        download_many(pfds_to_get, tempdir)
+    except:
+        shutil.rmtree(tempdir)
+        raise
 
     return tempdir, fn_mapping
 
@@ -178,77 +189,88 @@ def main():
         rater = rater_module.Rater()
         loaded_raters[(rater.long_name, rater.version)] = rater
   
-    db = database.Database()
-    for rater in loaded_raters.values():
-        rating_instance_id = rat_inst_id_cache.get_id(rater.long_name, \
-                                                      rater.version, \
-                                                      rater.description)
-        header_ids = get_beams_to_rate(rating_instance_id)
-        for header_id in header_ids:
-            # For candidates with this header_id find which current ratings 
-            # are not computed
-            query = "SELECT c.pdm_cand_id, " \
-                        "rt.name, " \
-                        "ri.version " \
-                    "FROM pdm_candidates AS c WITH(NOLOCK) " \
-                    "CROSS JOIN (SELECT rt.pdm_rating_type_id, " \
-                                    "MAX(ri.pdm_rating_instance_id) " \
-                                        "AS current_instance_id " \
-                                "FROM pdm_rating_instance AS ri WITH(NOLOCK) " \
-                                "LEFT JOIN pdm_rating_type AS rt WITH(NOLOCK) " \
-                                    "ON ri.pdm_rating_type_id=rt.pdm_rating_type_id " \
-                                "GROUP BY rt.pdm_rating_type_id) AS ci " \
-                    "LEFT JOIN pdm_rating_instance AS ri WITH(NOLOCK) " \
-                        "ON ri.pdm_rating_instance_id=ci.current_instance_id " \
-                    "LEFT JOIN pdm_rating AS r WITH(NOLOCK) " \
-                        "ON r.pdm_cand_id=c.pdm_cand_id " \
-                            "AND ri.pdm_rating_instance_id=r.pdm_rating_instance_id " \
-                    "LEFT JOIN pdm_rating_type AS rt WITH(NOLOCK) " \
-                        "ON rt.pdm_rating_type_id=ri.pdm_rating_type_id " \
-                    "WHERE c.header_id=? AND r.value IS NULL"
-            db.execute(query, header_id)
-            missing_ratings = db.fetchall()
-
-            if not missing_ratings:
-                raise utils.RatingError("At least the current rating should " \
-                                    "be missing. (This is how the header "
-                                    "IDs were selected.)")
-
-            # Get pfds for this header_id
-            if DBNAME == 'common2':
-                tmpdir, fn_mapping = get_pfds_from_ftp(header_id)
-            else:
-                tmpdir, fn_mapping = get_pfds_from_db(header_id)
-
-            rated_cands = []
-            # Rate pfds for this header_id
-            for cand_id, pfd_fn in fn_mapping.iteritems():
-                raters_to_use = [loaded_raters[(x[1], x[2])] for x in missing_ratings \
-                                    if x[0]==cand_id and (x[1], x[2]) in loaded_raters]
-                cand = rate_pfd(os.path.join(tmpdir, pfd_fn), raters_to_use)
-                
-                # Add candidate ID number to facilitate uploading
-                cand.id = cand_id
-                rated_cands.append(cand)
-
-            # Upload rating values
-            query_args = []
-            for cand in rated_cands:
-                print cand, cand.id
-                for ratval in cand.rating_values:
-                    query_args.append((ratval.value, cand.id, \
-                                rat_inst_id_cache.get_id(ratval.name, \
-                                                        ratval.version, \
-                                                        ratval.description)))
-            if query_args:
-                query = "INSERT INTO pdm_rating " \
-                        "(value, pdm_cand_id, pdm_rating_instance_id, date) " \
-                        "VALUES (?, ?, ?, GETDATE())"
-                db.executemany(query, query_args)
-                
-            # Remove the temporary directory containing pfd files
-            shutil.rmtree(tmpdir)
-    db.close()
+    db = database.Database(DBNAME)
+    try:
+        for rater in loaded_raters.values():
+            rating_instance_id = rat_inst_id_cache.get_id(rater.long_name, \
+                                                          rater.version, \
+                                                          rater.description)
+            header_ids = get_beams_to_rate(rating_instance_id)
+            for header_id in header_ids:
+                # For candidates with this header_id find which current ratings 
+                # are not computed.
+                #
+                # NOTE: We use 'r.pdm_rating_instance_id' in the WHERE clause
+                # because it will be NULL if a rating does not exist in
+                # the 'pdm_rating' table. However, it _will_ be set if the rating
+                # exists, but has a value of NULL (i.e. the rating failed). 
+                # If we were used 'r.value' instead, we would try to re-compute
+                # failed ratings.
+                query = "SELECT c.pdm_cand_id, " \
+                            "rt.name, " \
+                            "ri.version " \
+                        "FROM pdm_candidates AS c WITH(NOLOCK) " \
+                        "CROSS JOIN (SELECT rt.pdm_rating_type_id, " \
+                                        "MAX(ri.pdm_rating_instance_id) " \
+                                            "AS current_instance_id " \
+                                    "FROM pdm_rating_instance AS ri WITH(NOLOCK) " \
+                                    "LEFT JOIN pdm_rating_type AS rt WITH(NOLOCK) " \
+                                        "ON ri.pdm_rating_type_id=rt.pdm_rating_type_id " \
+                                    "GROUP BY rt.pdm_rating_type_id) AS ci " \
+                        "LEFT JOIN pdm_rating_instance AS ri WITH(NOLOCK) " \
+                            "ON ri.pdm_rating_instance_id=ci.current_instance_id " \
+                        "LEFT JOIN pdm_rating AS r WITH(NOLOCK) " \
+                            "ON r.pdm_cand_id=c.pdm_cand_id " \
+                                "AND ri.pdm_rating_instance_id=r.pdm_rating_instance_id " \
+                        "LEFT JOIN pdm_rating_type AS rt WITH(NOLOCK) " \
+                            "ON rt.pdm_rating_type_id=ri.pdm_rating_type_id " \
+                        "WHERE c.header_id=? AND r.pdm_rating_instance_id IS NULL"
+                print query
+                db.execute(query, header_id)
+                missing_ratings = db.fetchall()
+ 
+                if not missing_ratings:
+                    raise utils.RatingError("At least the current rating should " \
+                                        "be missing. (This is how the header "
+                                        "IDs were selected.)")
+ 
+                # Get pfds for this header_id
+                if DBNAME == 'common2':
+                    tmpdir, fn_mapping = get_pfds_from_ftp(header_id)
+                else:
+                    tmpdir, fn_mapping = get_pfds_from_db(header_id)
+ 
+                try:
+                    rated_cands = []
+                    # Rate pfds for this header_id
+                    for cand_id, pfd_fn in fn_mapping.iteritems():
+                        raters_to_use = [loaded_raters[(x[1], x[2])] for x in missing_ratings \
+                                            if x[0]==cand_id and (x[1], x[2]) in loaded_raters]
+                        cand = rate_pfd(os.path.join(tmpdir, pfd_fn), raters_to_use)
+                        
+                        # Add candidate ID number to facilitate uploading
+                        cand.id = cand_id
+                        rated_cands.append(cand)
+                 
+                    # Upload rating values
+                    query_args = []
+                    for cand in rated_cands:
+                        print cand, cand.id
+                        for ratval in cand.rating_values:
+                            query_args.append((ratval.value, cand.id, \
+                                        rat_inst_id_cache.get_id(ratval.name, \
+                                                                ratval.version, \
+                                                                ratval.description)))
+                    if query_args:
+                        query = "INSERT INTO pdm_rating " \
+                                "(value, pdm_cand_id, pdm_rating_instance_id, date) " \
+                                "VALUES (?, ?, ?, GETDATE())"
+                        db.executemany(query, query_args)
+                finally:    
+                    # Remove the temporary directory containing pfd files
+                    shutil.rmtree(tmpdir)
+    finally:
+        db.close()
 
 
 class RemoveAllRatersAction(argparse.Action):
