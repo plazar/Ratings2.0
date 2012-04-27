@@ -147,7 +147,7 @@ def get_pfds_from_ftp(header_id):
             "FROM pdm_candidate_binaries_filesystem AS cbf WITH(NOLOCK) " \
             "LEFT JOIN pdm_candidates AS c WITH(NOLOCK) " \
                 "ON c.pdm_cand_id=cbf.pdm_cand_id " \
-            "WHERE c.header_id=?"
+            "WHERE c.header_id=? AND cbf.uploaded=1"
     db.execute(query, header_id)
     
     # Create temporary directory
@@ -159,9 +159,10 @@ def get_pfds_from_ftp(header_id):
         for cand_id, ftp_path, fn in db.fetchall():
             fn_mapping[cand_id] = fn
             pfds_to_get.append(os.path.join(ftp_path, fn))
-        
-        # Download files
-        download_many(pfds_to_get, tempdir)
+
+        if pfds_to_get:
+            # Download files
+            download_many(pfds_to_get, tempdir)
     except:
         shutil.rmtree(tempdir)
         raise
@@ -225,7 +226,6 @@ def main():
                         "LEFT JOIN pdm_rating_type AS rt WITH(NOLOCK) " \
                             "ON rt.pdm_rating_type_id=ri.pdm_rating_type_id " \
                         "WHERE c.header_id=? AND r.pdm_rating_instance_id IS NULL"
-                print query
                 db.execute(query, header_id)
                 missing_ratings = db.fetchall()
  
@@ -255,7 +255,6 @@ def main():
                     # Upload rating values
                     query_args = []
                     for cand in rated_cands:
-                        print cand, cand.id
                         for ratval in cand.rating_values:
                             query_args.append((ratval.value, cand.id, \
                                         rat_inst_id_cache.get_id(ratval.name, \

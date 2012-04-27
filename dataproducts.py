@@ -272,7 +272,7 @@ class MultiGaussComponent(object):
             fudge_factor = 1.5
         
         if self.fwhm*fudge_factor > 1.0:
-            raise RatingError("Fudge factored FWHM is larger than 1.0 in phase")
+            raise utils.RatingError("Fudge factored FWHM is larger than 1.0 in phase")
 
         start_phase = self.phs - (self.fwhm*fudge_factor)/2.0
         end_phase = self.phs + (self.fwhm*fudge_factor)/2.0
