@@ -1,3 +1,5 @@
+import config
+
 import numpy as np
 
 import base
@@ -7,7 +9,7 @@ from rating_classes import cand_info
 M = 99
 MAX_NUMERATOR = 33
 MAX_DENOMINATOR = 5
-KNOWNPSR_FILENM = "knownpulsars.txt"
+KNOWNPSR_FILENM = config.knownpsr_filenm
 
 
 class KnownPulsarRater(base.BaseRater):

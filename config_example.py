@@ -11,4 +11,9 @@ host = 'h'
 ftp_port = 0
 ftp_host = "h"
 ftp_username = "un"
-ftp_password = "pw" 
+ftp_password = "pw"
+
+################################################################
+# Other Configurations
+################################################################
+knownpsr_filenm = "knownpulsars.txt" # Look in PWD
