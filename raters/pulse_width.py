@@ -4,6 +4,8 @@ from rating_classes import multigauss
 import numpy as np
 import psr_utils
 
+import utils
+
 class PulseWidthRater(base.BaseRater):
     short_name = "pulsewidth"
     long_name = "Pulse Width Rating"
