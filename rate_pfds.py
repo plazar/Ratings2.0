@@ -5,6 +5,7 @@ import copy
 import multiprocessing
 import traceback
 import textwrap
+import warnings
 
 import candidate
 import raters
@@ -38,6 +39,9 @@ def main():
     if args.list_raters:
         utils.print_raters_list(args.verbosity)
         sys.exit(0)
+
+    if args.ignore_warnings:
+        warnings.simplefilter('ignore', utils.RatingWarning)
 
     rater_instances = []
     for rater_name in args.raters:
@@ -166,5 +170,9 @@ if __name__ == '__main__':
                         default=True, action='store_false', \
                         help="Do not write out ratings to screen. " \
                                 "(Default: Write ratings to screen.)")
+    parser.add_argument('--ignore-warnings', dest='ignore_warnings', \
+                        default=False, action='store_true', \
+                        help="Do not display warnings. " \
+                                "(Default: display warnings.)")
     args = parser.parse_args()
     main()
