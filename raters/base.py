@@ -1,4 +1,5 @@
 import sys
+import warnings
 
 import rating_value
 import rating_classes
@@ -40,9 +41,11 @@ class BaseRater(object):
             self.rat_cls.add_data(cand)
             value = self._compute_rating(cand)
         except utils.RatingError, e:
-            sys.stderr.write("%s -- RatingError encountered when rating " \
-                             "candidate (%s): %s\n" % \
-                             (self.__class__.__name__, cand.pfdfn, str(e)))
+            warnings.warn("%s -- RatingError encountered when rating " \
+                             "candidate (%s): %s\n" \
+                             "Setting rating value to None and continuing..." % \
+                             (self.__class__.__name__, cand.pfdfn, str(e)),
+                           utils.RatingWarning)
             value = None
         
         ratval = rating_value.RatingValue(self.long_name, self.version, \
