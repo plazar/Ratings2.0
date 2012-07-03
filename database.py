@@ -43,7 +43,7 @@ DATABASES = {
 
 
 # Set defaults
-DEFAULTDB = 'common-copy'
+DEFAULTDB = 'common2'
 DATABASES['default'] = DATABASES[DEFAULTDB]
 
 
