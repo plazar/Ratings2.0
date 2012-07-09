@@ -16,7 +16,8 @@ registered_raters = ["duty_cycle", \
                      "subbands_snrstd", \
                      "subints_snrstd", \
                      "multigauss_number", \
-                     "multigauss_goodness"]
+                     "multigauss_goodness", \
+                     "ubc_pfd_ai"]
 
 __all__ = registered_raters
 
