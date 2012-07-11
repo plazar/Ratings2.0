@@ -91,14 +91,14 @@ class KnownPulsarRater(base.BaseRater):
             if np.any((pdiff < 0.002)):
                 for dispm in dms:
                     pdiff_dm=1.0/(2.0*np.abs(((dispm)-dm)/((dispm)+dm)))
-                    pdiff_min=np.min(pdiff_dm,pdiff_min)
+                    pdiff_min=np.min([pdiff_dm,pdiff_min])
         if pdiff_min == 0.0:
             for rat in self.ratios:
                 pdiff = 2.0*np.abs(((p*rat)-periods)/((p*rat)+periods))
                 if np.any((pdiff < 0.02)):
                     for dispm in dms:
                         pdiff_dm=1.0/(2.0*np.abs(((dispm)-dm)/((dispm)+dm)))
-                        pdiff_min=np.min(pdiff_dm,pdiff_min)
+                        pdiff_min=np.min([pdiff_dm,pdiff_min])
         return pdiff_min
 
 Rater = KnownPulsarRater
