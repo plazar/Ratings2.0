@@ -72,33 +72,30 @@ class KnownPulsarRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        p = cand.info['bary_period']
-        dm = cand.info['dm']
+        candp = cand.info['bary_period']
+        canddm = cand.info['dm']
         ra = cand.info['raj_deg']
         decl = cand.info['decj_deg']
-        pdiff_min = 0.0
 
         diff_ra = np.abs(self.known_ras - ra)
         diff_dec = np.abs(self.known_decls - decl)
 
         ii_nearby = (diff_ra < 0.2) & (diff_dec < 0.2)
-        periods = self.known_periods[ii_nearby]
-        dms = self.known_dms[ii_nearby]
+        knownps = self.known_periods[ii_nearby]
+        knowndms = self.known_dms[ii_nearby]
 
+        knownness = 0.0
         for b in range(1, M):
-            pdiff = (2.0*np.abs(p*b-periods)/(p*b+periods))
+            pdiff = (2.0*np.abs(candp*b-knownps)/(candp*b+knownps))
 
-            if np.any((pdiff < 0.002)):
-                for dispm in dms:
-                    pdiff_dm=1.0/(2.0*np.abs(((dispm)-dm)/((dispm)+dm)))
-                    pdiff_min=np.min(pdiff_dm,pdiff_min)
-        if pdiff_min == 0.0:
-            for rat in self.ratios:
-                pdiff = 2.0*np.abs(((p*rat)-periods)/((p*rat)+periods))
-                if np.any((pdiff < 0.02)):
-                    for dispm in dms:
-                        pdiff_dm=1.0/(2.0*np.abs(((dispm)-dm)/((dispm)+dm)))
-                        pdiff_min=np.min(pdiff_dm,pdiff_min)
-        return pdiff_min
+            for knowndm in knowndms[pdiff < 0.002]:
+                pdiff_dm = 1.0/(2.0*np.abs(((knowndm)-canddm)/((knowndm)+canddm)))
+                knownness=np.max([pdiff_dm,knownness])
+        for rat in self.ratios:
+            pdiff = 2.0*np.abs(((candp*rat)-knownps)/((candp*rat)+knownps))
+            for knowndm in knowndms[pdiff < 0.02]:
+                pdiff_dm=1.0/(2.0*np.abs(((knowndm)-canddm)/((knowndm)+canddm)))
+                knownness=np.min([pdiff_dm,knownness])
+        return knownness
 
 Rater = KnownPulsarRater
