@@ -76,16 +76,16 @@ class KnownPulsarRater(base.BaseRater):
         fctr = 0.5*(cand.pfd.hifreq+cand.pfd.lofreq)
         ddm_smear_phase = psr_utils.dm_smear(ddms, bw, fctr)/knownps
 
-        if knownps:
+        if knownps.size:
             for b in range(1, M):
                 dp_smear_sec = np.abs(candp*b-knownps)*cand.pfd.T
                 dp_smear_phase = np.min(np.vstack((dp_smear_sec/knownps, dp_smear_phase)), axis=0)
             for rat in self.ratios:
                 dp_smear_sec = np.abs(candp*b-knownps)*cand.pfd.T
                 dp_smear_phase = np.min(np.vstack((dp_smear_sec/knownps, dp_smear_phase)), axis=0)
-            smear_phase = np.sqrt(dp_smear_phase**2+ddm_smear_phase**2)
-            if smear_phase > 1:
-                print cand.pfd.pfd_filename, smear_phase
+            smear_phase = np.min(np.sqrt(dp_smear_phase**2+ddm_smear_phase**2))
+            #if smear_phase > 1:
+            #    print cand.pfd.pfd_filename, smear_phase
             smear_phase = np.clip(smear_phase, 0, 10)
         else:
             # No nearby known pulsars
