@@ -11,6 +11,14 @@ import candidate
 import raters
 import utils
 
+def warn_to_stdout(message, category, filename, lineno, file=None, line=None):
+    """A function to replace warnings.showwarning so that warnings are
+         printed to STDOUT instead of STDERR.
+
+         Usage: warnings.showwarning = warn_to_stdout
+    """
+    sys.stdout.write(warnings.formatwarning(message,category,filename,lineno))
+
 def rate_pfd(pfdfn, rater_instances):
     """Given the name of a *.pfd file and a list of Rater instances
         compute the ratings.
@@ -42,6 +50,9 @@ def main():
 
     if args.ignore_warnings:
         warnings.simplefilter('ignore', utils.RatingWarning)
+
+    if args.redirect_warnings:
+        warnings.showwarning = warn_to_stdout
 
     rater_instances = []
     for rater_name in args.raters:
@@ -172,7 +183,11 @@ if __name__ == '__main__':
                                 "(Default: Write ratings to screen.)")
     parser.add_argument('--ignore-warnings', dest='ignore_warnings', \
                         default=False, action='store_true', \
-                        help="Do not display warnings. " \
+                        help="Do not display RatingWarning warnings. " \
                                 "(Default: display warnings.)")
+    parser.add_argument('--redirect-warnings', dest='redirect_warnings', \
+                        default=False, action='store_true', \
+                        help="Redirect warnings to stdout. " \
+                                "(Default: warnings print to stderr.)")
     args = parser.parse_args()
     main()
