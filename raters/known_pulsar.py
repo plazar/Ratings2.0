@@ -1,48 +1,34 @@
-import config
+import os.path
 
 import numpy as np
 
+import psr_utils
+
 import base
-from rating_classes import cand_info
+import config
+from rating_classes import pfd
 
 # Initialise constants
 M = 99
 MAX_NUMERATOR = 33
 MAX_DENOMINATOR = 5
-KNOWNPSR_FILENM = config.knownpsr_filenm
+KNOWNPSR_FILENM = os.path.join(os.path.split(__file__)[0], "../knownpulsars.txt")
 
 
 class KnownPulsarRater(base.BaseRater):
     short_name = "knownpsr"
     long_name = "Known Pulsar Rating"
-    description = "Evaluate how close the barycentric period is to a known " \
-                  "pulsar, its harmonics (up to 99th), or an integer-ratio-" \
-                  "multiple of a known pulsar period.\n" \
-                  "    The known pulsar P (in seconds), Ra and Dec (both in " \
-                  "degrees), and DM are stored in knownpulsars_periods.txt, " \
-                  "knownpulsars_ra.txt, knownpulsars_dec.txt, and " \
-                  "knownpulsars_dm.txt, respectively.\n" \
-                  "    1. If both the RA -and- Dec separations between the " \
-                  "candidate and a pulsar are less than 0.3 degrees, the " \
-                  "fractional difference between the candidate's period and " \
-                  "pulsar period (or one of its harmonics, up to the 99th) " \
-                  "is computed. Otherwise the candidate is given a 0 rating.\n" \
-                  "    2. If this fractional period difference is less than " \
-                  "0.001, the fractional difference between the candidate " \
-                  "and known pulsar DM is calculated. The rating is then " \
-                  "just the inverse of the smallest DM fractional difference.\n" \
-                  "    3. Otherwise, if the fractional difference between the " \
-                  "candidate period and an integer-ratio-multiple of a known " \
-                  "pulsar period [e.g. (3/16)*P_psr, (5/33)*P_psr] is less " \
-                  "than 0.02, the fractional difference in DM is computed. " \
-                  "The rating is the inverse of the smallest fractional " \
-                  "difference.\n" \
-                  "    Known pulsars should have very high ratings (~>10) " \
-                  "and most (but not all) non-pulsars should be rated with " \
-                  "a zero."
-    version = 0
+    description = "Evaluate how similar the period and DM are to a nearby " \
+                    "pulsar. The rating value is an estimate in the smearing " \
+                    "(in rotations) of the DM and period differences. " \
+                    "integer and fractional harmonics are also checked. " \
+                    "NOTES: " \
+                        "1) low values of this rating indicate a higher " \
+                            "change of the candidate being a known pulsar. " \
+                        "2) rating values are constrained to be < 10."
+    version = 1
 
-    rat_cls = cand_info.CandInfoRatingClass()
+    rat_cls = pfd.PfdRatingClass()
 
     def _setup(self):
         """A setup method to be called when the Rater is initialised
@@ -84,18 +70,26 @@ class KnownPulsarRater(base.BaseRater):
         knownps = self.known_periods[ii_nearby]
         knowndms = self.known_dms[ii_nearby]
 
-        knownness = 0.0
-        for b in range(1, M):
-            pdiff = (2.0*np.abs(candp*b-knownps)/(candp*b+knownps))
+        dp_smear_phase = np.inf*np.ones(knownps.size)
+        ddms = np.abs(canddm-knowndms)
+        bw = cand.pfd.hifreq-cand.pfd.lofreq
+        fctr = 0.5*(cand.pfd.hifreq+cand.pfd.lofreq)
+        ddm_smear_phase = psr_utils.dm_smear(ddms, bw, fctr)/knownps
 
-            for knowndm in knowndms[pdiff < 0.002]:
-                pdiff_dm = 1.0/(2.0*np.abs(((knowndm)-canddm)/((knowndm)+canddm)))
-                knownness=np.max([pdiff_dm,knownness])
-        for rat in self.ratios:
-            pdiff = 2.0*np.abs(((candp*rat)-knownps)/((candp*rat)+knownps))
-            for knowndm in knowndms[pdiff < 0.02]:
-                pdiff_dm=1.0/(2.0*np.abs(((knowndm)-canddm)/((knowndm)+canddm)))
-                knownness=np.min([pdiff_dm,knownness])
-        return knownness
+        if knownps:
+            for b in range(1, M):
+                dp_smear_sec = np.abs(candp*b-knownps)*cand.pfd.T
+                dp_smear_phase = np.min(np.vstack((dp_smear_sec/knownps, dp_smear_phase)), axis=0)
+            for rat in self.ratios:
+                dp_smear_sec = np.abs(candp*b-knownps)*cand.pfd.T
+                dp_smear_phase = np.min(np.vstack((dp_smear_sec/knownps, dp_smear_phase)), axis=0)
+            smear_phase = np.sqrt(dp_smear_phase**2+ddm_smear_phase**2)
+            if smear_phase > 1:
+                print cand.pfd.pfd_filename, smear_phase
+            smear_phase = np.clip(smear_phase, 0, 10)
+        else:
+            # No nearby known pulsars
+            smear_phase = 10
+        return smear_phase
 
 Rater = KnownPulsarRater
