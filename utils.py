@@ -12,6 +12,10 @@ class RatingWarning(Warning):
     pass
 
 
+class RaterLoadWarning(RatingWarning):
+    pass
+
+
 class RatingInstanceIDCache(object):
     """A cache object to keep track of rating instance ID numbers.
         This object will query the database for ID numbers if
