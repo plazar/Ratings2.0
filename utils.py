@@ -7,6 +7,10 @@ import dataproducts
 class RatingError(Exception):
     pass
 
+class RatingDepreciatedError(RatingError):
+    """ Error to raise when a rating version has been 
+        superceded by a more recent version.""" 
+    pass
 
 class RatingWarning(Warning):
     pass
@@ -86,7 +90,7 @@ class RatingInstanceIDCache(object):
         elif (row is not None) and (row[2] > version):
             # We're considering a rating version that has
             # been superceded! Error...
-            raise RatingError("This rating (%s (v%d)) is no longer " \
+            raise RatingDepreciatedError("This rating (%s (v%d)) is no longer " \
                               "current. It has been replaced by " \
                               "%s (v%d)" % \
                               (name, version, row[1], row[2]))
