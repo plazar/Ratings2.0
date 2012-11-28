@@ -6,7 +6,7 @@ class SubbandsSNRStdev(base.BaseRater):
     long_name = "Subband SNR Std Dev"
     description = "Determines the standard deviation of the subband " \
                   "signal-to-noise ratios."
-    version = 2
+    version = 3
     rat_cls = subband_stats.SubbandPulseWindowStats()
 
     def _compute_rating(self, cand):

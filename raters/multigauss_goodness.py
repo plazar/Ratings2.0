@@ -8,7 +8,7 @@ class MultiGaussGoodnessOfFitRater(base.BaseRater):
     description = "Fit the profile with multiple Gaussians and " \
                   "report the goodness of the fit (reduced " \
                   "chi-square."
-    version = 1
+    version = 2
 
     rat_cls = multigauss.MultipleGaussianProfileClass()
 

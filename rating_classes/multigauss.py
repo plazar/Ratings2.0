@@ -135,9 +135,11 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
             # additional Gaussian did not significantly improve the fit and we
             # should stop.  The nan test is needed because if the fit is /worse/
             # then Ftest doesn't return a valid number.  Also stop if we reach
-            # the maximum number of Gaussian profile components
+            # the maximum number of Gaussian profile components. Stop if the
+            # fwhm of the added component is greater than 1.0
             if F_stat > self.F_stat_threshold or np.isnan(F_stat) \
-                   or ngaussians > self.max_gaussians:
+                   or ngaussians > self.max_gaussians \
+                   or new_fit.components[-1].fwhm > 1.0:
                 fit    = False
             # Otherwise, keep fitting and update the parameters for the next pass
             else:

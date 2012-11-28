@@ -7,7 +7,7 @@ class NumberOfGaussiansRater(base.BaseRater):
     description = "The number of gaussians needed to obtain a statistically " \
                   "acceptable fit to the best profile. A maximum of 5 gaussians " \
                   "is used. An unsuccessful fit returns 0 gaussains."
-    version = 1
+    version = 2
 
     rat_cls = multigauss.MultipleGaussianProfileClass()
 
