@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import os
 import os.path
+import numpy as np
 
 import candidate
 import raters
@@ -255,16 +256,32 @@ def main():
                     # Upload rating values
                     query_args = []
                     for cand in rated_cands:
-                        for ratval in cand.rating_values:
-                            query_args.append((ratval.value, cand.id, \
-                                        rat_inst_id_cache.get_id(ratval.name, \
-                                                                ratval.version, \
-                                                                ratval.description)))
-                    if query_args:
-                        query = "INSERT INTO pdm_rating " \
-                                "(value, pdm_cand_id, pdm_rating_instance_id, date) " \
-                                "VALUES (?, ?, ?, GETDATE())"
-                        db.executemany(query, query_args)
+                        if len(cand.rating_values):
+                            query = "INSERT INTO pdm_rating " + \
+                                    "(value, pdm_rating_instance_id, pdm_cand_id, date) "
+                            for ratval in cand.rating_values:
+                                if not ratval.value is None and np.abs(ratval.value) < 1e-307:
+                                    ratval.value = 0.0
+
+                                if not ratval.value is None and np.isinf(ratval.value):
+                                    ratval.value = 9999.0
+                                instance_id = rat_inst_id_cache.get_id(ratval.name, \
+                                                                       ratval.version, \
+                                                                       ratval.description)            
+
+                                value = np.float(ratval.value) if not ratval.value is None else None
+
+                                if value is None or np.isnan(value):
+                                    query += "SELECT NULL, %d, %d, GETDATE() UNION ALL " % \
+                                              (instance_id, cand.id)
+                                else:
+                                    query += "SELECT '%.12g', %d, %d, GETDATE() UNION ALL " % \
+                                              (ratval.value, instance_id, cand.id)
+
+                            query = query.rstrip('UNION ALL') # remove trailing 'UNION ALL' from query
+
+                            db.execute(query)
+
                 finally:    
                     # Remove the temporary directory containing pfd files
                     shutil.rmtree(tmpdir)
