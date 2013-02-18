@@ -23,7 +23,7 @@ class RatingInstanceIDCache(object):
         in the database the cache obeject will add an entry
         to the DB.
     """
-    def __init__(self, dbname='common-copy'):
+    def __init__(self, dbname='default'):
         """Constructor for RatingIDCache objects.
 
             Input:
