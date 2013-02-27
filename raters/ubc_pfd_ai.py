@@ -10,8 +10,8 @@ import config
 #### setup UBC AI
 from ubc_AI.training import pfddata
 import cPickle
-#classifier = cPickle.load(open(config.pfd_classifier, 'r'))
 clfer = config.pfd_classifier
+classifier = cPickle.load(open(clfer, 'r'))
 ####
 
 class ubc_pfd_ai(base.BaseRater):
@@ -38,7 +38,6 @@ class ubc_pfd_ai(base.BaseRater):
         pfd.__class__ = pfddata
         pfd.__init__("self")
 
-        classifier = cPickle.load(open(clfer, 'r'))
         pred = classifier.report_score([pfd])[0]
         return pred
 
