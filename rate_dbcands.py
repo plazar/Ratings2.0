@@ -18,7 +18,7 @@ import database
 import utils
 import config
 
-DBNAME = "common2"
+DBNAME = "common3"
 #DBNAME = "common-copy"
 
 def rate_pfd(pfdfn, rater_instances):

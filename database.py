@@ -15,35 +15,42 @@ DATABASES = {
         'DATABASE': 'palfa-common',
         'UID':  config.username,
         'PWD':  config.password,
-        'HOST': config.host,
+        #'HOST': config.host,
         'DSN':  'FreeTDSDSN'
         },
     'common2': {
         'DATABASE': 'palfaCandDB2',
         'UID':  config.username,
         'PWD':  config.password,
-        'HOST': config.host,
+        #'HOST': config.host,
+        'DSN':  'FreeTDSDSN'
+        },
+    'common3': {
+        'DATABASE': 'palfaCands',
+        'UID':  config.username,
+        'PWD':  config.password,
+        #'HOST': config.host,
         'DSN':  'FreeTDSDSN'
         },
     'common-copy': {
         'DATABASE': 'palfa-common-copy',
         'UID':  config.username,
         'PWD':  config.password,
-        'HOST': config.host,
+        #'HOST': config.host,
         'DSN':  'FreeTDSDSN'
         },
     'tracking': {
         'DATABASE': 'palfatracking',
         'UID':  config.username,
         'PWD':  config.password,
-        'HOST': config.host,
+        #'HOST': config.host,
         'DSN':  'FreeTDSDSN'
         },
 }
 
 
 # Set defaults
-DEFAULTDB = 'common2'
+DEFAULTDB = 'common3'
 DATABASES['default'] = DATABASES[DEFAULTDB]
 
 

@@ -10,8 +10,8 @@ import config
 #### setup UBC AI
 from ubc_AI.training import pfddata
 import cPickle
-#classifier = cPickle.load(open(config.pfd_classifier, 'r'))
 clfer = config.pfd_classifier
+classifier = cPickle.load(open(clfer, 'r'))
 ####
 
 class ubc_pfd_ai(base.BaseRater):
@@ -19,7 +19,7 @@ class ubc_pfd_ai(base.BaseRater):
     long_name = "UBC pfd AI"
     description = "compute the prediction from the pulsar classifier " \
                   "based on pfd files."
-    version = 2
+    version = 3
     
     rat_cls = profile.ProfileClass()
 
@@ -36,10 +36,9 @@ class ubc_pfd_ai(base.BaseRater):
         #prof = cand.time_vs_phase.get_profile()
         pfd = cand.pfd
         pfd.__class__ = pfddata
+        pfd.__init__("self")
 
-        classifier = cPickle.load(open(clfer, 'r'))
-        pred = classifier.predict_proba([pfd])[...,1][0]
-
+        pred = classifier.report_score([pfd])[0]
         return pred
 
 
