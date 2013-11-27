@@ -12,13 +12,13 @@ Multiple Gaussian component fitting to pulse profiles.
 Copied from Ryan Lynch's code for the orignal Ratings project.
 """
 
-USE_MPFIT = False # The alternative is scipy.optimize.leastsq
-
 class MultipleGaussianProfileClass(profile.ProfileClass):
     data_key = "multigaussfit"
     
     # The maximum number of Gaussian components to fit
     max_gaussians = 5
+
+    USE_MPFIT = False # The alternative is scipy.optimize.leastsq
 
     # The threshold probability that the improvement in a fit from an additional
     # profile component is due to chance (as calculated via an F-test) for
@@ -26,8 +26,8 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
     F_stat_threshold = 0.01
     
     def _compute_data(self, cand):
-        """Fit the candidate's profile with mulitple gaussian
-            components and return the fit's parametrs.
+        """Fit the candidate's profile with multiple gaussian
+            components and return the fit's parameters.
 
             Input:
                 cand: A ratings2.0 Candidate object.
@@ -35,9 +35,7 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
             Output:
                 multigaussfit: The corresponding fit. A MultiGaussFit object.
         """
-        data = cand.profile.copy()
-        data /= np.sqrt(cand.pfd.varprof)
-        data -= data.mean()
+        data = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
 
         # Initialize some starting values
         nbins      = len(data)
@@ -70,7 +68,7 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
             trial_params.append(amplitude)
             trial_params.append(fwhm)
             trial_params.append(phase)
-            if USE_MPFIT:
+            if self.USE_MPFIT:
                 # params_dict is used by mpfit to get initial values and constraints on
                 # parameters
                 params_dict = []
@@ -139,7 +137,8 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
             # fwhm of the added component is greater than 1.0
             if F_stat > self.F_stat_threshold or np.isnan(F_stat) \
                    or ngaussians > self.max_gaussians \
-                   or new_fit.components[-1].fwhm > 1.0:
+                   or new_fit.components[-1].fwhm > 1.0 \
+                   or new_fit.components[-1].fwhm < 1.0/nbins:
                 fit    = False
             # Otherwise, keep fitting and update the parameters for the next pass
             else:

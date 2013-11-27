@@ -7,7 +7,7 @@ class GaussianGofRater(base.BaseRater):
     long_name = "Gaussian Goodness Rating"
     description = "The reduced chi2 of a single-Gaussian fit to the best " \
                   "profile. Good fits should have a reduced chi2 of ~1"
-    version = 1
+    version = 2
 
     rat_cls = gaussian.SingleGaussianProfileClass()
 

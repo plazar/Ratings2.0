@@ -9,7 +9,7 @@ class FractionGoodIntervals(base.BaseRater):
                   "both cumulative and peak S/N and returns the highest "\
                   "fraction of the two. (On-pulse region is based on a " \
                   "multiple-gaussian component fit to the integrated profile.)"
-    version = 3
+    version = 4
     rat_cls = subint_stats.SubintPulseWindowStats()
     
     def _compute_rating(self, cand):
