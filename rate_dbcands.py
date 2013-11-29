@@ -198,6 +198,8 @@ def main():
                                                           rater.version, \
                                                           rater.description)
             header_ids = get_beams_to_rate(rating_instance_id)
+            print "For rater %s have %d beams to rate." % (rater.long_name,len(header_ids))
+
             for header_id in header_ids:
                 # For candidates with this header_id find which current ratings 
                 # are not computed.
@@ -231,9 +233,9 @@ def main():
                 missing_ratings = db.fetchall()
  
                 if not missing_ratings:
-                    raise utils.RatingError("At least the current rating should " \
-                                        "be missing. (This is how the header "
-                                        "IDs were selected.)")
+                    raise utils.RatingError("At least the current rating (%s) should " \
+                                        "be missing for header_id=%d. (This is how the header "
+                                        "IDs were selected.)" % (rater.long_name, header_id))
  
                 # Get pfds for this header_id
                 if DBNAME == 'common2':
