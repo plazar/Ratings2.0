@@ -1,3 +1,7 @@
+import warnings
+
+import utils
+
 registered_raters = ["duty_cycle", \
                      "pulse_width", \
                      "wiggle", \
@@ -22,4 +26,8 @@ registered_raters = ["duty_cycle", \
 __all__ = registered_raters
 
 for rater_name in registered_raters:
-    __import__(rater_name, globals())
+    try:
+        __import__(rater_name, globals())
+    except:
+        warnings.warn("The rater '%s' could not be loaded!" % rater_name, \
+                utils.RaterLoadWarning)
