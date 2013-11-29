@@ -1,9 +1,6 @@
-## Automatically adapted for numpy Apr 14, 2006 by convertcode.py
-
 import numpy as Num
-import struct
-import sys, psr_utils, infodata, polycos, Pgplot, copy, random
-import presto
+import copy, random, struct, sys
+import psr_utils, infodata, polycos, Pgplot
 from types import StringType, FloatType, IntType
 from bestprof import bestprof
 
@@ -94,7 +91,7 @@ class pfd:
         # Save current p, pd, pdd
         # NOTE: Fold values are actually frequencies!
         self.curr_p1, self.curr_p2, self.curr_p3 = \
-                psr_utils.p_to_f(self.fold_p1, self.fold_p2, self.fold_p3) 
+                psr_utils.p_to_f(self.fold_p1, self.fold_p2, self.fold_p3)
         self.pdelays_bins = Num.zeros(self.npart, dtype='d')
         (self.orb_p, self.orb_e, self.orb_x, self.orb_w, self.orb_t, self.orb_pd, \
          self.orb_wd) = struct.unpack(swapchar+"d"*7, infile.read(7*8))
@@ -166,6 +163,11 @@ class pfd:
         self.T = self.Nfolded*self.dt
         self.avgprof = (self.profs/self.proflen).sum()
         self.varprof = self.calc_varprof()
+        # nominal number of degrees of freedom for reduced chi^2 calculation
+        self.DOFnom = float(self.proflen) - 1.0
+        # corrected number of degrees of freedom due to inter-bin correlations
+        self.dt_per_bin = self.curr_p1 / self.proflen / self.dt
+        self.DOFcor = self.DOFnom * self.DOF_corr()
         infile.close()
         self.barysubfreqs = None
         if self.avgvoverc==0:
@@ -231,7 +233,6 @@ class pfd:
             self.avgprof = (self.profs/self.proflen).sum()
         else:
             new_subdelays_bins = Num.floor(delaybins+0.5)
-            #print "DEBUG: in myprepfold.py -- DM, new_subdelays_bins:", DM, new_subdelays_bins
             for ii in range(self.nsub):
                 rotbins = int(new_subdelays_bins[ii])%self.proflen
                 if rotbins:  # i.e. if not zero
@@ -259,9 +260,14 @@ class pfd:
             bestpd = self.bary_p2
             bestpdd = self.bary_p3
         else:
-            bestp = self.topo_p1
-            bestpd = self.topo_p2
-            bestpdd = self.topo_p3
+            if self.topo_p1 == 0.0:
+                bestp = self.fold_p1
+                bestpd = self.fold_p2
+                bestpdd = self.fold_p3
+            else:
+                bestp = self.topo_p1
+                bestpd = self.topo_p2
+                bestpdd = self.topo_p3
         if p is not None:
             bestp = p
         if pd is not None:
@@ -276,7 +282,6 @@ class pfd:
 
         # Get best f, fd, fdd
         # Use folding values to be consistent with prepfold_plot.c
-        #print "DEBUG: in myprepfold.py -- foldp, foldpd, bestpdd", foldp, foldpd, bestpdd
         bestfdd = psr_utils.p_to_f(foldp, foldpd, bestpdd)[2]
         bestfd = psr_utils.p_to_f(foldp, bestpd)[1]
         bestf = 1.0/bestp
@@ -284,24 +289,73 @@ class pfd:
         # Get frequency and frequency derivative offsets
         f_diff = bestf - foldf
         fd_diff = bestfd - foldfd
+
         # bestpdd=0.0 only if there was no searching over pdd
         if bestpdd != 0.0:
             fdd_diff = bestfdd - foldfdd
         else:
             fdd_diff = 0.0
-        #print "DEBUG: in myprepfold.py (freq_offsets) -- foldf, foldfd, foldfdd", foldf, foldfd, foldfdd
-        #print "DEBUG: in myprepfold.py (freq_offsets) -- bestf, bestfd, bestfdd", bestf, bestfd, bestfdd
-        #print "DEBUG: in myprepfold.py (freq_offsets) -- f_diff, fd_diff, fdd_diff", f_diff, fd_diff, fdd_diff
 
         return (f_diff, fd_diff, fdd_diff)
+
+    def DOF_corr(self):
+        """
+        DOF_corr():
+            Return a multiplicative correction for the effective number of
+            degrees of freedom in the chi^2 measurement resulting from a
+            pulse profile folded by PRESTO's fold() function
+            (i.e. prepfold).  This is required because there are
+            correlations between the bins caused by the way that prepfold
+            folds data (i.e. treating a sample as finite duration and
+            smearing it over potenitally several bins in the profile as
+            opposed to instantaneous and going into just one profile bin).
+            The correction is semi-analytic (thanks to Paul Demorest and
+            Walter Brisken) but the values for 'power' and 'factor' have
+            been determined from Monte Carlos.  The correction is good to
+            a fractional error of less than a few percent as long as
+            dt_per_bin is > 0.5 or so (which it usually is for pulsar
+            candidates).  There is a very minimal number-of-bins
+            dependence, which is apparent when dt_per_bin < 0.7 or so.
+            dt_per_bin is the width of a profile bin in samples (a float),
+            and so for prepfold is pulse period / nbins / sample time.  Note
+            that the sqrt of this factor can be used to 'inflate' the RMS
+            of the profile as well, for radiometer eqn flux density estimates,
+            for instance.
+        """
+        power, factor = 1.806, 0.96  # From Monte Carlo
+        return self.dt_per_bin * factor * \
+               (1.0 + self.dt_per_bin**(power))**(-1.0/power)
+
+    def use_for_timing(self):
+        """
+        use_for_timing():
+            This method returns True or False depending on whether
+            the .pfd file can be used for timing or not.  For this
+            to return true, the pulsar had to have been folded with
+            a parfile and -no[p/pd]search (this includes -timing), or
+            with a p/pdot/pdotdot and a corresponding -no[p/pd]search.
+            In other words, if you let prepfold search for the best
+            p/pdot/pdotdot, you will get bogus TOAs if you try timing
+            with it.
+        """
+        T = self.T
+        bin_dphi = 1.0/self.proflen
+        # If any of the offsets causes more than a 0.1-bin rotation over
+        # the obs, then prepfold searched and we can't time using it
+        offsets = Num.fabs(Num.asarray(self.freq_offsets()))
+        dphis = offsets * Num.asarray([T, T**2.0/2.0, T**3.0/6.0])
+        if max(dphis) > 0.1 * bin_dphi:
+            return False
+        else:
+            return True
 
     def time_vs_phase(self, p=None, pd=None, pdd=None, interp=0):
         """
         time_vs_phase(p=*bestp*, pd=*bestpd*, pdd=*bestpdd*):
             Return the 2D time vs. phase profiles shifted so that
                 the given period and period derivative are applied.
-                Use FFT-based interpolation if 'interp' is non-zero 
-                (NOTE: It is off by default!).
+                Use FFT-based interpolation if 'interp' is non-zero.
+                (NOTE: It is off by default as in prepfold!).
         """
         # Cast to single precision and back to double precision to
         # emulate prepfold_plot.c, where parttimes is of type "float"
@@ -330,20 +384,23 @@ class pfd:
                 subints[ii,:] = psr_utils.fft_rotate(tmp_prof, -new_pdelays_bins[ii])
         else:
             new_pdelays_bins = Num.floor(bin_delays+0.5)
-            indices = Num.outer(Num.arange(self.proflen), Num.ones(self.npart)) 
+            indices = Num.outer(Num.arange(self.proflen), Num.ones(self.npart))
             indices = Num.mod(indices-new_pdelays_bins, self.proflen).T
             indices += Num.outer(Num.arange(self.npart)*self.proflen, \
                                     Num.ones(self.proflen))
             subints = subints.flatten('C')[indices.astype('i8')]
         return subints
-    
+
     def adjust_period(self, p=None, pd=None, pdd=None, interp=0):
         """
         adjust_period(p=*bestp*, pd=*bestpd*, pdd=*bestpdd*):
-            Rotate (internally) the profiles so that they are adjusted
-                the given period and period derivatives
-                Use FFT-based interpolation if 'interp' is non-zero 
-                (NOTE: It is off by default!)
+            Rotate (internally) the profiles so that they are adjusted to
+                the given period and period derivatives.  By default,
+                use the 'best' values as determined by prepfold's seaqrch.
+                This should orient all of the profiles so that they are
+                almost identical to what you see in a prepfold plot which
+                used searching.  Use FFT-based interpolation if 'interp'
+                is non-zero.  (NOTE: It is off by default, as in prepfold!)
         """
         if self.fold_pow == 1.0:
             bestp = self.bary_p1
@@ -394,11 +451,11 @@ class pfd:
             # Note: Since the rotation process slightly changes the values of the
             # profs, we need to re-calculate the average profile value
             self.avgprof = (self.profs/self.proflen).sum()
-        
+
         self.sumprof = self.profs.sum(0).sum(0)
         if Num.fabs((self.sumprof/self.proflen).sum() - self.avgprof) > 1.0:
             print "self.avgprof is not the correct value!"
-        
+
         # Save current p, pd, pdd
         self.curr_p1, self.curr_p2, self.curr_p3 = p, pd, pdd
 
@@ -558,7 +615,8 @@ class pfd:
         if prof is None:  prof = self.sumprof
         if avg is None:  avg = self.avgprof
         if var is None:  var = self.varprof
-        return ((prof-avg)**2.0/var).sum()/(len(prof)-1.0)
+        # Note:  use the _corrected_ DOF for reduced chi^2 calculation
+        return ((prof-avg)**2.0/var).sum() / self.DOFcor
 
     def plot_chi2_vs_DM(self, loDM, hiDM, N=100, interp=0, device='/xwin'):
         """
@@ -630,13 +688,12 @@ class pfd:
                       rangey=[0.0, max(chis)*1.1], device=device)
         return chis
 
-    def estimate_offsignal_redchi2(self):
+    def estimate_offsignal_redchi2(self, numtrials=20):
         """
         estimate_offsignal_redchi2():
             Estimate the reduced-chi^2 off of the signal based on randomly shifting
                 and summing all of the component profiles.  
         """
-        numtrials = 20
         redchi2s = []
         for count in range(numtrials):
             prof = Num.zeros(self.proflen, dtype='d')
