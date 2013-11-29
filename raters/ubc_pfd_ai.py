@@ -8,10 +8,10 @@ from rating_classes import profile
 import config
 
 #### setup UBC AI
-from ubc_AI.training import pfddata
+from ubc_AI.data import pfdreader
 import cPickle
 clfer = config.pfd_classifier
-classifier = cPickle.load(open(clfer, 'r'))
+classifier = cPickle.load(open(clfer, 'rb'))
 ####
 
 class ubc_pfd_ai(base.BaseRater):
@@ -19,7 +19,7 @@ class ubc_pfd_ai(base.BaseRater):
     long_name = "UBC pfd AI"
     description = "compute the prediction from the pulsar classifier " \
                   "based on pfd files."
-    version = 3
+    version = 4
     
     rat_cls = profile.ProfileClass()
 
@@ -33,12 +33,9 @@ class ubc_pfd_ai(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        #prof = cand.time_vs_phase.get_profile()
-        pfd = cand.pfd
-        pfd.__class__ = pfddata
-        pfd.__init__("self")
+        pfd_fn = cand.pfd.pfd_filename
 
-        pred = classifier.report_score([pfd])[0]
+        pred = classifier.report_score([pfdreader(pfd_fn)])
         return pred
 
 
