@@ -6,7 +6,7 @@ class GaussianFWHMRater(base.BaseRater):
     long_name = "Gaussian FWHM Rating"
     description = "The full-width at half-maximum of a single-Gaussian " \
                   "fit to the best profile."
-    version = 1
+    version = 2
 
     rat_cls = gaussian.SingleGaussianProfileClass()
 

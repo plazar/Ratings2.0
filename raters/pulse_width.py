@@ -14,7 +14,7 @@ class PulseWidthRater(base.BaseRater):
                   "time to the width of the narrowest component. Ideally, " \
                   "a real pulsar should have a rating < 1.0 (but the fits " \
                   "may not always be ideal!)."
-    version = 2
+    version = 3
 
     rat_cls = multigauss.MultipleGaussianProfileClass()
 

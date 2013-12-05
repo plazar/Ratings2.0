@@ -7,7 +7,7 @@ class GaussianAmplitudeRater(base.BaseRater):
     description = "The amplitude of a single-Gaussian fit to the best " \
                   "profile, normalized such that the profile standard " \
                   "deviation is 1."
-    version = 1
+    version = 2
 
     rat_cls = gaussian.SingleGaussianProfileClass()
 
