@@ -238,7 +238,7 @@ def main():
                                         "IDs were selected.)" % (rater.long_name, header_id))
  
                 # Get pfds for this header_id
-                if DBNAME == 'common2':
+                if DBNAME == 'common2' or DBNAME == 'common3':
                     tmpdir, fn_mapping = get_pfds_from_ftp(header_id)
                 else:
                     tmpdir, fn_mapping = get_pfds_from_db(header_id)
