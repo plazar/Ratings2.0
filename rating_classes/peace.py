@@ -3,19 +3,19 @@ import subprocess
 import cand_info
 
 KEYS = ['snr', \
-        'pulsewidthA', \
-        'pulsewidthB', \
-        'persistenceA', \
-        'persistenceB', \
-        'broadbandednessA', \
-        'broadbandednessB', \
+        'pulsewidth_gauss', \
+        'pulsewidth_progcnt', \
+        'persistence_gauss', \
+        'persistence_peak', \
+        'broadbandedness_gauss', \
+        'broadbandedness_peak', \
         'DM', \
         'unused', \
         'DMsmearing', \
         'period', \
-        'scoreA', \
-        'scoreB', \
-        'scoreC']
+        'score_gauss', \
+        'score_progcnt', \
+        'score_all']
 
 class PeaceRatingClass(cand_info.CandInfoRatingClass):
     data_key = "peace"
@@ -53,6 +53,7 @@ class PeaceRatingClass(cand_info.CandInfoRatingClass):
         else:
             # Exit code is 0, which is "Success". Do nothing.
             pass
+        # Skip first field, it is the filename
         scores = [float(xx) for xx in stdoutdata.strip().split()[1:]]
         peace = dict(zip(KEYS, scores))
         return peace

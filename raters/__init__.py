@@ -21,7 +21,18 @@ registered_raters = ["duty_cycle", \
                      "subints_snrstd", \
                      "multigauss_number", \
                      "multigauss_goodness", \
-                     "ubc_pfd_ai"]
+                     "ubc_pfd_ai", \
+                     "peace_bb_gauss", \
+                     "peace_bb_progcnt", \
+                     "peace_dmsmear", \
+                     "peace_gauss_score", \
+                     "peace_persistence_gauss", \
+                     "peace_persistence_progcnt", \
+                     "peace_progcnt_score", \
+                     "peace_pulsewidth_gauss", \
+                     "peace_pulsewidth_progcnt", \
+                     "peace_snr", \
+                     "peace_score"]
 
 __all__ = registered_raters
 
