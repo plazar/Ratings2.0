@@ -17,7 +17,8 @@ class PeaceCompositeGaussScoreRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['score_gauss']
+        peace = cand.get_from_cache('peace')
+        return peace['score_gauss']
 
 Rater = PeaceCompositeGaussScoreRater
 

@@ -18,7 +18,8 @@ class PeaceProgCountWidthRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['pulsewidth_progcnt']
+        peace = cand.get_from_cache('peace')
+        return peace['pulsewidth_progcnt']
 
 Rater = PeaceProgCountWidthRater
 

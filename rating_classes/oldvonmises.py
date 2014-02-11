@@ -19,10 +19,10 @@ class GaussianProfileClass(profile.ProfileClass):
         """
         k_for_fwhm_approx = lambda fwhm: np.log(2)/(1-np.cos(np.pi*fwhm))
         
-        profile = cand.profile.copy()
-        profile -= cand.profile.mean()
-        ks = [k_for_fwhm_approx(fwhm/float(len(profile))) for fwhm in range(1,len(profile)//2)]
-        pos = int(np.argmin([self._rms_residual(k,profile) for k in ks]))
+        prof = cand.get_from_cache('profile').copy()
+        prof -= prof.mean()
+        ks = [k_for_fwhm_approx(fwhm/float(len(profile))) for fwhm in range(1,len(prof)//2)]
+        pos = int(np.argmin([self._rms_residual(k,prof) for k in ks]))
 
         if pos==0:
             mid = ks[0]
@@ -37,7 +37,7 @@ class GaussianProfileClass(profile.ProfileClass):
             mid = ks[pos]
             right = ks[pos-1]
  
-        k = scipy.optimize.fminbound(lambda k: self._rms_residual(k, profile), \
+        k = scipy.optimize.fminbound(lambda k: self._rms_residual(k, prof), \
                                                 left, right)
         mu, a, b = self._fit_all_but_k(k, profile)
         return dataproducts.GaussianFit(k, mu, a, b)

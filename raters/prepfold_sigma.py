@@ -25,8 +25,9 @@ class PrepfoldSigmaRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        prof = cand.time_vs_phase.get_profile()
-        pfd = cand.pfd
+        tvph = cand.get_from_cache('time_vs_phase')
+        prof = tvph.get_profile()
+        pfd = cand.get_from_cache('pfd')
 
         prof_avg = np.sum(pfd.stats[:,:,4][:pfd.npart])
         prof_var = np.sum(pfd.stats[:,:,5][:pfd.npart])

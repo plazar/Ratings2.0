@@ -15,7 +15,8 @@ class PeaceSnrRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['snr']
+        peace = cand.get_from_cache('peace')
+        return peace['snr']
 
 Rater = PeaceSnrRater
 

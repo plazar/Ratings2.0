@@ -29,8 +29,8 @@ class PulseWidthRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        pfd = cand.pfd
-        mgauss = cand.multigaussfit
+        pfd = cand.get_from_cache('pfd')
+        mgauss = cand.get_from_cache('multigaussfit')
         ncomp = len(mgauss.components)
         if not ncomp:
             raise utils.RatingError("Bad number of components for single " \

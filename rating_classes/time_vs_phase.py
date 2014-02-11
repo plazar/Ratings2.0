@@ -14,7 +14,7 @@ class TimeVsPhaseClass(pfd.PfdRatingClass):
             Output:
                 tvph: The corresponding TimeVsPhase object.
         """
-        pfd = cand.pfd
+        pfd = cand.get_from_cache('pfd')
         pfd.dedisperse(pfd.bestdm, doppler=1)
         data = pfd.profs.sum(axis=1).squeeze()
         #

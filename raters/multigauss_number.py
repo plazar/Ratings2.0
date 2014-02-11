@@ -22,7 +22,7 @@ class NumberOfGaussiansRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        mgauss = cand.multigaussfit
+        mgauss = cand.get_from_cache('multigaussfit')
         return len(mgauss.components)
 
 

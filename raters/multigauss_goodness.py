@@ -15,8 +15,11 @@ class MultiGaussGoodnessOfFitRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        profile = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
-        mgauss = cand.multigaussfit
+        prof = cand.get_from_cache('profile')
+        pfd = cand.get_from_cache('pfd')
+        mgauss = cand.get_from_cache('multigaussfit')
+        
+        profile = utils.get_scaled_profile(prof, pfd.varprof)
         chi2 = mgauss.get_chisqr(profile)
         dof = mgauss.get_dof(len(profile))
         return chi2/dof

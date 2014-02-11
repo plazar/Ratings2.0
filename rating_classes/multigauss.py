@@ -35,7 +35,9 @@ class MultipleGaussianProfileClass(profile.ProfileClass):
             Output:
                 multigaussfit: The corresponding fit. A MultiGaussFit object.
         """
-        data = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
+        prof = cand.get_from_cache('profile')
+        pfd = cand.get_from_cache('pfd')
+        data = utils.get_scaled_profile(prof, pfd.varprof)
 
         # Initialize some starting values
         nbins      = len(data)

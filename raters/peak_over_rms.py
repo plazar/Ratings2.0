@@ -23,7 +23,7 @@ class PeakOverRMSRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        prof = cand.profile
+        prof = cand.get_from_cache('profile')
         return (np.amax(prof)-np.median(prof))/np.std(prof)
 
 Rater = PeakOverRMSRater

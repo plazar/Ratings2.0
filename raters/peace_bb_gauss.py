@@ -15,7 +15,8 @@ class PeaceGaussBroadbandednessRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['broadbandedness_gauss']
+        peace = cand.get_from_cache('peace')
+        return peace['broadbandedness_gauss']
 
 Rater = PeaceGaussBroadbandednessRater
 

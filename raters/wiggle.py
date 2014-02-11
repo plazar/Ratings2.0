@@ -29,8 +29,8 @@ class WiggleRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        tvph = cand.time_vs_phase
-        pfd = cand.pfd
+        tvph = cand.get_from_cache('time_vs_phase')
+        pfd = cand.get_from_cache('pfd')
 
         bestprof = tvph.get_profile()
         new_template = np.zeros_like(bestprof)

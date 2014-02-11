@@ -37,6 +37,7 @@ class Candidate(object):
         self.decj_deg = decj_deg
         self.pfdfn = pfdfn
         self.rating_values = []
+        self.cache = {}
 
     def add_rating(self, ratval):
         self.rating_values.append(ratval)
@@ -67,13 +68,17 @@ class Candidate(object):
         return fn
 
     def add_to_cache(self, key, val):
-        setattr(self, key, val)
+        self.cache[key] = val
         
     def get_from_cache(self, key):
-        return getattr(self, key)
+        return self.cache[key]
         
     def is_in_cache(self, key):
-        return hasattr(self, key)
+        return (key in self.cache)
+
+    def clear_cache(self):
+        self.cache.clear()
+        self.cache = {}
 
 
 def read_pfd_file(pfdfn):

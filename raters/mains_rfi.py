@@ -30,7 +30,8 @@ class MainsRFIRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        topo_freq = 1.0/cand.info['topo_period']
+        info = cand.get_from_cache('info')
+        topo_freq = 1.0/info['topo_period']
         fdiff_min = 1e10
         for aa in range(1, 9):
             for bb in range(1, 10-aa):

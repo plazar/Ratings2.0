@@ -21,7 +21,7 @@ class GaussianFWHMRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        sgauss = cand.singlegaussfit
+        sgauss = cand.get_from_cache('singlegaussfit')
         ncomp = len(sgauss.components)
         if ncomp == 1:
             fwhm = sgauss.components[0].fwhm

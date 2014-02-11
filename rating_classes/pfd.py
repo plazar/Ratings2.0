@@ -14,7 +14,8 @@ class PfdRatingClass(cand_info.CandInfoRatingClass):
             Output:
                 pfd: The corresponding (dedispersed) prepfold.pfd object.
         """
-        pfdfn = cand.info['pfdfn']
+        info = cand.get_from_cache('info')
+        pfdfn = info['pfdfn']
         pfd = prepfold.pfd(pfdfn)
         pfd.dedisperse(doppler=1)
         return pfd

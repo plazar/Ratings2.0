@@ -16,7 +16,8 @@ class PeaceProgCountBroadbandednessRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['broadbandedness_peak']
+        peace = cand.get_from_cache('peace')
+        return peace['broadbandedness_peak']
 
 Rater = PeaceProgCountBroadbandednessRater
 

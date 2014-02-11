@@ -22,7 +22,7 @@ class FractionGoodIntervals(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        intstats = cand.subint_stats
+        intstats = cand.get_from_cache('subint_stats')
         return max((intstats.get_on_frac(), intstats.get_peak_on_frac()))
 
 
