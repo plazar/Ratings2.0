@@ -85,7 +85,9 @@ def main():
                 traceback.print_exc()
     else:
         for pfdfn in args.infiles:
-            cands.append(rate_pfd(pfdfn, rater_instances))
+            cand = rate_pfd(pfdfn, rater_instances)
+            cands.append(cand)
+            cand.clear_cache()
     for cand in cands:
         if args.write_to_file:
             cand.write_ratings_to_file()
