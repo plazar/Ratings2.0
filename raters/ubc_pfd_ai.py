@@ -33,7 +33,7 @@ class ubc_pfd_ai(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        pfd_fn = cand.pfd.pfd_filename
+        pfd_fn = cand.get_from_cache('pfd').pfd_filename
 
         pred = classifier.report_score([pfdreader(pfd_fn)])
         return pred

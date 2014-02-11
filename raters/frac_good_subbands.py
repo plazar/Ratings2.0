@@ -22,7 +22,7 @@ class FractionGoodSubbands(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        chanstats = cand.subband_stats
+        chanstats = cand.get_from_cache('subband_stats')
         return max((chanstats.get_on_frac(), chanstats.get_peak_on_frac()))
 
 

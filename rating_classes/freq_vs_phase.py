@@ -15,7 +15,7 @@ class FreqVsPhaseClass(pfd.PfdRatingClass):
             Output:
                 fvph: The corresponding FreqVsPhase object.
         """
-        pfd = cand.pfd
+        pfd = cand.get_from_cache('pfd')
         if pfd.fold_pow == 1.0:
             bestp = pfd.bary_p1
             bestpd = pfd.bary_p2

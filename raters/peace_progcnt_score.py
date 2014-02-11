@@ -17,7 +17,8 @@ class PeaceCompositeProgCountScoreRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['score_progcnt']
+        peace = cand.get_from_cache('peace')
+        return peace['score_progcnt']
 
 Rater = PeaceCompositeProgCountScoreRater
 

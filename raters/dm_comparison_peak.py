@@ -24,13 +24,14 @@ class DMComparisonPeakRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        fvph = cand.freq_vs_phase
-        
+        fvph = cand.get_from_cache('freq_vs_phase')
+        pfd = cand.get_from_cache('pfd')
+
         fvph.dedisperse(DM=0)
         prof_dm0 = fvph.get_profile()
         peak_dm0 = np.amax(prof_dm0) - np.median(prof_dm0)
 
-        fvph.dedisperse(DM=cand.pfd.bestdm)
+        fvph.dedisperse(DM=pfd.bestdm)
         prof_bestdm = fvph.get_profile()
         peak_bestdm = np.amax(prof_bestdm) - np.median(prof_bestdm)
 

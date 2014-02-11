@@ -13,7 +13,8 @@ class ProfileClass(time_vs_phase.TimeVsPhaseClass, freq_vs_phase.FreqVsPhaseClas
             Output:
                 prof: The corresponding Profile object.
         """
-        pfd = cand.pfd
+        pfd = cand.get_from_cache('pfd')
+        tvph = cand.get_from_cache('time_vs_phase')
         if pfd.fold_pow == 1.0:
             bestp = pfd.bary_p1
             bestpd = pfd.bary_p2
@@ -22,6 +23,5 @@ class ProfileClass(time_vs_phase.TimeVsPhaseClass, freq_vs_phase.FreqVsPhaseClas
             bestp = pfd.topo_p1
             bestpd = pfd.topo_p2
             bestpdd = pfd.topo_p3
-        tvph = cand.time_vs_phase
         tvph.adjust_period(bestp, bestpd, bestpdd)
         return tvph.get_profile()

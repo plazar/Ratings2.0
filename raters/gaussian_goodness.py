@@ -22,8 +22,11 @@ class GaussianGofRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        profile = utils.get_scaled_profile(cand.profile, cand.pfd.varprof)
-        sgauss = cand.singlegaussfit
+        prof = cand.get_from_cache('profile')
+        pfd = cand.get_from_cache('pfd')
+        sgauss = cand.get_from_cache('singlegaussfit')
+        
+        profile = utils.get_scaled_profile(prof, pfd.varprof)
         chi2 = sgauss.get_chisqr(profile)
         dof = sgauss.get_dof(len(profile))
         return chi2/dof

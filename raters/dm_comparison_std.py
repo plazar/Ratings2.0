@@ -24,13 +24,14 @@ class DMComparisonStddevRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        fvph = cand.freq_vs_phase
-        
+        fvph = cand.get_from_cache('freq_vs_phase')
+        pfd = cand.get_from_cache('pfd')
+
         fvph.dedisperse(DM=0)
         prof_dm0 = fvph.get_profile()
         stddev_dm0 = np.std(prof_dm0)
 
-        fvph.dedisperse(DM=cand.pfd.bestdm)
+        fvph.dedisperse(DM=pfd.bestdm)
         prof_bestdm = fvph.get_profile()
         stddev_bestdm = np.std(prof_bestdm)
 

@@ -36,7 +36,8 @@ class PeaceRatingClass(cand_info.CandInfoRatingClass):
             Output:
                 peace: A dictionary of PEACE scores.
         """
-        pfdfn = cand.info['pfdfn']
+        info = cand.get_from_cache('info')
+        pfdfn = info['pfdfn']
         cmd = ['autos2.exe', '-f', pfdfn, '-ostd']
         pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, \
                                     stderr=subprocess.PIPE)

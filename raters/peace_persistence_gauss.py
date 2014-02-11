@@ -15,7 +15,8 @@ class PeaceGaussPersistenceRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['persistence_gauss']
+        peace = cand.get_from_cache('peace')
+        return peace['persistence_gauss']
 
 Rater = PeaceGaussPersistenceRater
 

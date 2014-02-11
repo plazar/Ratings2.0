@@ -16,7 +16,8 @@ class PeaceDmSmearRater(base.BaseRater):
     def _compute_rating(self, cand):
         """
         """
-        return cand.peace['DMsmearing']
+        peace = cand.get_from_cache('peace')
+        return peace['DMsmearing']
 
 Rater = PeaceDmSmearRater
 

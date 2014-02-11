@@ -17,8 +17,8 @@ class SubintPulseWindowStats(multigauss.MultipleGaussianProfileClass, \
             Output:
                 subint_stats: The resulting PulseWindowStats object.
         """
-        mgauss = cand.multigaussfit
-        tvph = cand.time_vs_phase
+        mgauss = cand.get_from_cache('multigaussfit')
+        tvph = cand.get_from_cache('time_vs_phase')
 
         onpulse_region = mgauss.get_onpulse_region(tvph.nbin)
         offpulse_region = np.bitwise_not(onpulse_region)

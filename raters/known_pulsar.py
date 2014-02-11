@@ -58,10 +58,12 @@ class KnownPulsarRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        candp = cand.info['bary_period']
-        canddm = cand.info['dm']
-        ra = cand.info['raj_deg']
-        decl = cand.info['decj_deg']
+        info = cand.get_from_cache('info')
+        candp = info['bary_period']
+        canddm = info['dm']
+        ra = info['raj_deg']
+        decl = info['decj_deg']
+        pfd = cand.get_from_cache('pfd')
 
         diff_ra = np.abs(self.known_ras - ra)
         diff_dec = np.abs(self.known_decls - decl)
@@ -72,20 +74,20 @@ class KnownPulsarRater(base.BaseRater):
 
         dp_smear_phase = np.inf*np.ones(knownps.size)
         ddms = np.abs(canddm-knowndms)
-        bw = cand.pfd.hifreq-cand.pfd.lofreq
-        fctr = 0.5*(cand.pfd.hifreq+cand.pfd.lofreq)
+        bw = pfd.hifreq-pfd.lofreq
+        fctr = 0.5*(pfd.hifreq+pfd.lofreq)
         ddm_smear_phase = psr_utils.dm_smear(ddms, bw, fctr)/knownps
 
         if knownps.size:
             for b in range(1, M):
-                dp_smear_sec = np.abs(candp*b-knownps)*cand.pfd.T
+                dp_smear_sec = np.abs(candp*b-knownps)*pfd.T
                 dp_smear_phase = np.min(np.vstack((dp_smear_sec/knownps, dp_smear_phase)), axis=0)
             for rat in self.ratios:
-                dp_smear_sec = np.abs(candp*b-knownps)*cand.pfd.T
+                dp_smear_sec = np.abs(candp*b-knownps)*pfd.T
                 dp_smear_phase = np.min(np.vstack((dp_smear_sec/knownps, dp_smear_phase)), axis=0)
             smear_phase = np.min(np.sqrt(dp_smear_phase**2+ddm_smear_phase**2))
             #if smear_phase > 1:
-            #    print cand.pfd.pfd_filename, smear_phase
+            #    print pfd.pfd_filename, smear_phase
             smear_phase = np.clip(smear_phase, 0, 10)
         else:
             # No nearby known pulsars

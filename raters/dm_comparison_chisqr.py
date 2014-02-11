@@ -26,8 +26,8 @@ class DMComparisonChiSquareRater(base.BaseRater):
             Output:
                 value: The rating value.
         """
-        fvph = cand.freq_vs_phase
-        pfd = cand.pfd
+        fvph = cand.get_from_cache('freq_vs_phase')
+        pfd = cand.get_from_cache('pfd')
 
         prof_avg = np.sum(pfd.stats[:,:,4][:pfd.npart])
         prof_var = np.sum(pfd.stats[:,:,5][:pfd.npart])
@@ -36,7 +36,7 @@ class DMComparisonChiSquareRater(base.BaseRater):
         prof_dm0 = fvph.get_profile()
         chisqr_dm0 = presto.chisqr(prof_dm0, pfd.proflen, prof_avg, prof_var)
 
-        fvph.dedisperse(DM=cand.pfd.bestdm)
+        fvph.dedisperse(DM=pfd.bestdm)
         prof_bestdm = fvph.get_profile()
         chisqr_bestdm = presto.chisqr(prof_bestdm, pfd.proflen, prof_avg, prof_var)
 
